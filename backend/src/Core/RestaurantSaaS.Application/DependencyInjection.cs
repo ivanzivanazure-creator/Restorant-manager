@@ -2,6 +2,7 @@ using System.Reflection;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using RestaurantSaaS.Application.Auth;
 using RestaurantSaaS.Application.Common.Behaviors;
 
 namespace RestaurantSaaS.Application;
@@ -13,6 +14,7 @@ public static class DependencyInjection
         var assembly = Assembly.GetExecutingAssembly();
 
         services.AddValidatorsFromAssembly(assembly);
+        services.AddScoped<TokenIssuer>();
 
         // Behavior order = execution order (outermost first): logging wraps everything (so it also
         // catches/logs validation and authorization failures), then validation, then tenant authorization,

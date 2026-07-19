@@ -128,6 +128,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, HttpContextCurrentUserService>();
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IIdentityService, IdentityService>();
         services.AddSingleton<IPasswordHasherService, IdentityPasswordHasherService>();
         services.AddSingleton<IMfaService, TotpMfaService>();
     }
