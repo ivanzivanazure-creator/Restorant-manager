@@ -1,0 +1,63 @@
+name: Deploy to Azure (manual)
+
+# Manual-only (workflow_dispatch) and documented rather than wired up: it references repository secrets
+# that don't exist in a fresh clone (AZURE_CREDENTIALS, ACR_LOGIN_SERVER, ...). Configure those secrets
+# (see deploy/azure/README.md) before enabling this for real use — until then this is a template.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options: [staging, production]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to ACR
+        run: az acr login --name ${{ secrets.ACR_NAME }}
+
+      - name: Build & push API image
+        run: |
+          docker build -t $ACR_LOGIN_SERVER/restaurant-saas-api:${{ github.sha }} \
+            -f backend/src/Presentation/RestaurantSaaS.Api/Dockerfile backend
+          docker push $ACR_LOGIN_SERVER/restaurant-saas-api:${{ github.sha }}
+
+      - name: Build & push Workers image
+        run: |
+          docker build -t $ACR_LOGIN_SERVER/restaurant-saas-workers:${{ github.sha }} \
+            -f backend/src/Workers/RestaurantSaaS.Workers/Dockerfile backend
+          docker push $ACR_LOGIN_SERVER/restaurant-saas-workers:${{ github.sha }}
+
+      - name: Build & push Web image
+        run: |
+          docker build -t $ACR_LOGIN_SERVER/restaurant-saas-web:${{ github.sha }} \
+            frontend/restaurant-saas-web
+          docker push $ACR_LOGIN_SERVER/restaurant-saas-web:${{ github.sha }}
+
+      - name: Deploy Bicep (Container Apps revision update)
+        run: |
+          az deployment group create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --template-file deploy/azure/main.bicep \
+            --parameters environment=${{ inputs.environment }} imageTag=${{ github.sha }}
