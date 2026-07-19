@@ -1,0 +1,46 @@
+# ---- .NET ----
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.dll
+*.pdb
+appsettings.Development.json
+appsettings.*.local.json
+**/publish/
+
+# ---- Node / Angular ----
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+*.tsbuildinfo
+
+# ---- Env / secrets ----
+.env
+.env.*
+!*.env.example
+*.pfx
+*.key
+
+# ---- IDE ----
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Logs ----
+logs/
+*.log
+
+# ---- Test / coverage ----
+coverage/
+TestResults/
+*.trx
+
+# ---- Docker ----
+docker-compose.override.yml
