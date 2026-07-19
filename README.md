@@ -98,8 +98,11 @@ docker compose up --build
 This starts: `postgres`, `redis`, `api` (http://localhost:5000, Swagger at `/swagger`),
 `worker` (Hangfire dashboard at http://localhost:5001/hangfire), and `web` (Angular, http://localhost:4200).
 
-On first run the API applies EF Core migrations and seeds demo data — see
-[Seed data / sample logins](#seed-data--sample-logins) below.
+On first run the API creates the schema (`EnsureCreatedAsync`, straight from the current EF Core model —
+see the `TODO` at the top of `Program.cs`: no versioned migrations exist yet, since this repo was
+generated in a sandbox with no .NET SDK / no network access to `dotnet-ef`; generate a real
+`InitialCreate` migration and switch to `MigrateAsync` before your first production deploy) and seeds
+demo data — see [Seed data / sample logins](#seed-data--sample-logins) below.
 
 ### Run backend locally without Docker
 

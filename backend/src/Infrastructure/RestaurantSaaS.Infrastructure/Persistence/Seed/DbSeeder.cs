@@ -22,8 +22,7 @@ public static class DbSeeder
     public static async Task SeedAsync(ApplicationDbContext db, UserManager<ApplicationUser> userManager,
         ILogger logger, bool seedDemoTenant, CancellationToken ct = default)
     {
-        await db.Database.MigrateAsync(ct);
-
+        // Schema creation (EnsureCreated or Migrate) is the caller's responsibility — see Program.cs.
         var permissions = await SeedPermissionsAsync(db, ct);
         var systemRoles = await SeedSystemRolesAsync(db, permissions, ct);
         await SeedPackagesAsync(db, ct);

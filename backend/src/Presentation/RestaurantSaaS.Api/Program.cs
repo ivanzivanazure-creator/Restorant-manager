@@ -1,0 +1,140 @@
+using System.Text.Json.Serialization;
+using Asp.Versioning;
+using Hangfire;
+using Hangfire.Dashboard;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.OpenApi.Models;
+using RestaurantSaaS.Api.Middleware;
+using RestaurantSaaS.Application;
+using RestaurantSaaS.Infrastructure;
+using RestaurantSaaS.Infrastructure.Identity;
+using RestaurantSaaS.Infrastructure.Logging;
+using RestaurantSaaS.Infrastructure.Persistence;
+using RestaurantSaaS.Infrastructure.Persistence.Seed;
+using RestaurantSaaS.Infrastructure.RealTime;
+using Serilog;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, cfg) => SerilogSetup.Configure(cfg, context.Configuration, "Api"));
+
+// ---- Services ----
+
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddApiVersioning(o =>
+{
+    o.DefaultApiVersion = new ApiVersion(1, 0);
+    o.AssumeDefaultVersionWhenUnspecified = true;
+    o.ReportApiVersions = true;
+});
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Restaurant SaaS API",
+        Version = "v1",
+        Description = "Multi-tenant restaurant management platform — POS, Kitchen Display, Inventory, Menu, and more.",
+    });
+
+    var jwtScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Paste a JWT access token (without the 'Bearer ' prefix).",
+        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" },
+    };
+    options.AddSecurityDefinition("Bearer", jwtScheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement { [jwtScheme] = [] });
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowConfiguredOrigins", policy =>
+    {
+        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:4200"];
+        policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod().AllowCredentials(); // credentials needed for SignalR
+    });
+});
+
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("Postgres")!, name: "postgres")
+    .AddRedis(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379", name: "redis");
+
+var app = builder.Build();
+
+// ---- Startup: migrate + seed ----
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var seedDemoData = builder.Configuration.GetValue("SeedDemoData", app.Environment.IsDevelopment());
+
+    // TODO before first production deploy: this repo has no EF Core migrations yet (generated in a
+    // sandbox with no .NET SDK / no network access to restore dotnet-ef). Run, once, from backend/:
+    //   dotnet ef migrations add InitialCreate --project src/Infrastructure/RestaurantSaaS.Infrastructure --startup-project src/Presentation/RestaurantSaaS.Api
+    // then replace the line below with `await db.Database.MigrateAsync();` so schema changes are
+    // versioned and applied incrementally instead of derived fresh from the current model every boot.
+    await db.Database.EnsureCreatedAsync();
+
+    await DbSeeder.SeedAsync(db, userManager, logger, seedDemoData);
+}
+
+// ---- Middleware pipeline ----
+
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseSerilogRequestLogging();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles(); // serves /uploads (LocalFileStorageService) — swap for Azure Blob + CDN in production
+app.UseCors("AllowConfiguredOrigins");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+app.MapHub<KitchenHub>("/hubs/kitchen");
+app.MapHub<OrdersHub>("/hubs/orders");
+
+app.MapHealthChecks("/health"); // liveness: process is up
+app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = _ => true }); // readiness: DB + Redis reachable
+
+app.MapHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new HangfireSuperAdminAuthFilter()],
+});
+
+app.Run();
+
+/// <summary>Restricts the Hangfire dashboard to authenticated SuperAdmin principals.</summary>
+file sealed class HangfireSuperAdminAuthFilter : IDashboardAuthorizationFilter
+{
+    public bool Authorize(DashboardContext context)
+    {
+        var httpContext = context.GetHttpContext();
+        return httpContext.User.Identity?.IsAuthenticated == true && httpContext.User.HasClaim(ClaimTypesExt.SuperAdmin, "true");
+    }
+}
+
+// Exposed for WebApplicationFactory<Program> in integration tests.
+public partial class Program;
