@@ -16,6 +16,10 @@ public sealed class InventoryController(ISender mediator) : ApiControllerBase(me
     public async Task<ActionResult<Guid>> CreateWarehouse(Guid locationId, [FromQuery] string name, CancellationToken ct) =>
         Ok(await Mediator.Send(new CreateWarehouseCommand(TenantId, locationId, name), ct));
 
+    [HttpGet("locations/{locationId:guid}/warehouses")]
+    public async Task<ActionResult<IReadOnlyCollection<WarehouseDto>>> GetWarehouses(Guid locationId, CancellationToken ct) =>
+        Ok(await Mediator.Send(new GetWarehousesQuery(TenantId, locationId), ct));
+
     [HttpPost("ingredients")]
     [Authorize(Policy = Permissions.Inventory.Manage)]
     public async Task<ActionResult<Guid>> CreateIngredient(CreateIngredientRequest body, CancellationToken ct) =>

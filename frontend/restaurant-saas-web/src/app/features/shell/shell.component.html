@@ -1,0 +1,43 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav mode="side" opened class="shell-nav">
+    <div class="brand">
+      <mat-icon>restaurant</mat-icon>
+      <span>Restaurant SaaS</span>
+    </div>
+    <mat-nav-list>
+      @for (item of navItems; track item.path) {
+        @if (visible(item)) {
+          <a mat-list-item [routerLink]="item.path" routerLinkActive="active-link">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="shell-toolbar">
+      <span class="spacer"></span>
+
+      <button mat-icon-button [matTooltip]="theme.resolvedIsDark() ? 'Switch to light mode' : 'Switch to dark mode'" (click)="theme.toggle()">
+        <mat-icon>{{ theme.resolvedIsDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+
+      <button mat-button [matMenuTriggerFor]="userMenu">
+        <mat-icon>account_circle</mat-icon>
+        {{ auth.currentUser()?.email }}
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sign out</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <main class="shell-main">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -9,10 +9,18 @@ namespace RestaurantSaaS.Api.Controllers;
 [Route("api/v1/restaurant-management")]
 public sealed class RestaurantManagementController(ISender mediator) : ApiControllerBase(mediator)
 {
+    [HttpGet("restaurants")]
+    public async Task<ActionResult<IReadOnlyCollection<RestaurantDto>>> GetRestaurants(CancellationToken ct) =>
+        Ok(await Mediator.Send(new GetRestaurantsQuery(TenantId), ct));
+
     [HttpPost("restaurants")]
     [Authorize(Policy = Permissions.Tenancy.ManageRestaurants)]
     public async Task<ActionResult<RestaurantDto>> CreateRestaurant(CreateRestaurantRequest body, CancellationToken ct) =>
         Ok(await Mediator.Send(new CreateRestaurantCommand(TenantId, body.Name, body.LegalName, body.DefaultCurrency), ct));
+
+    [HttpGet("locations")]
+    public async Task<ActionResult<IReadOnlyCollection<LocationDto>>> GetLocations([FromQuery] Guid? restaurantId, CancellationToken ct) =>
+        Ok(await Mediator.Send(new GetLocationsQuery(TenantId, restaurantId), ct));
 
     [HttpPost("restaurants/{restaurantId:guid}/locations")]
     [Authorize(Policy = Permissions.Tenancy.ManageLocations)]

@@ -1,0 +1,68 @@
+<div class="rsaas-page">
+  <div class="rsaas-page-header">
+    <h1>Restaurant Management</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row"><mat-spinner diameter="32" /></div>
+  } @else if (locations().length === 0) {
+    <rsaas-empty-state message="No locations yet." icon="storefront" />
+  } @else {
+    <div class="location-chip-row">
+      @for (location of locations(); track location.id) {
+        <button
+          type="button"
+          class="location-chip"
+          [class.active]="locationContext.locationId() === location.id"
+          (click)="selectLocation(location)"
+        >
+          {{ location.name }}
+          <span class="rsaas-muted">— {{ location.city }}</span>
+        </button>
+      }
+    </div>
+
+    @if (locationContext.hasLocation()) {
+      <div class="rsaas-card" style="margin-top: 1.5rem">
+        <div class="rsaas-page-header">
+          <h2>Tables</h2>
+          <button mat-stroked-button (click)="addingTable.set(!addingTable())">
+            <mat-icon>add</mat-icon>
+            Add table
+          </button>
+        </div>
+
+        @if (addingTable()) {
+          <form class="add-category-form" [formGroup]="tableForm" (ngSubmit)="addTable()">
+            <mat-form-field appearance="outline">
+              <mat-label>Label</mat-label>
+              <input matInput formControlName="label" placeholder="e.g. T1" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Capacity</mat-label>
+              <input matInput type="number" formControlName="capacity" />
+            </mat-form-field>
+            <button mat-flat-button color="primary" type="submit" [disabled]="tableForm.invalid">Save</button>
+          </form>
+        }
+
+        @if (tables().length === 0) {
+          <rsaas-empty-state message="No tables yet." icon="table_bar" />
+        } @else {
+          <div class="table-list">
+            @for (table of tables(); track table.id) {
+              <div class="table-list-row">
+                <span><strong>{{ table.label }}</strong> — seats {{ table.capacity }}</span>
+                @if (table.qrCodeImageDataUri) {
+                  <img [src]="table.qrCodeImageDataUri" alt="QR code for {{ table.label }}" class="qr-thumb" />
+                } @else {
+                  <button mat-stroked-button (click)="generateQr(table)">Generate QR code</button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

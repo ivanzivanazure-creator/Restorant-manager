@@ -26,6 +26,21 @@ public sealed class GetStockLevelsQueryHandler(IApplicationDbContext db) : IRequ
     }
 }
 
+public sealed record WarehouseDto(Guid Id, Guid LocationId, string Name);
+
+public sealed record GetWarehousesQuery(Guid TenantId, Guid LocationId) : IRequest<IReadOnlyCollection<WarehouseDto>>, ITenantScopedRequest;
+
+public sealed class GetWarehousesQueryHandler(IApplicationDbContext db) : IRequestHandler<GetWarehousesQuery, IReadOnlyCollection<WarehouseDto>>
+{
+    public async Task<IReadOnlyCollection<WarehouseDto>> Handle(GetWarehousesQuery request, CancellationToken ct)
+    {
+        return await db.Warehouses
+            .Where(w => w.TenantId == request.TenantId && w.LocationId == request.LocationId && w.IsActive)
+            .Select(w => new WarehouseDto(w.Id, w.LocationId, w.Name))
+            .ToListAsync(ct);
+    }
+}
+
 public sealed record GetLowStockAlertsQuery(Guid TenantId) : IRequest<IReadOnlyCollection<StockLevelDto>>, ITenantScopedRequest;
 
 public sealed class GetLowStockAlertsQueryHandler(IApplicationDbContext db) : IRequestHandler<GetLowStockAlertsQuery, IReadOnlyCollection<StockLevelDto>>

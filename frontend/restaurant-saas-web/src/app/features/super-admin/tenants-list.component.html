@@ -1,0 +1,54 @@
+<div class="rsaas-page">
+  <div class="rsaas-page-header">
+    <h1>Super Admin</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row"><mat-spinner diameter="32" /></div>
+  } @else {
+    @if (analytics(); as a) {
+      <div class="rsaas-kpi-grid">
+        <rsaas-kpi-card label="Total tenants" [value]="a.totalTenants.toString()" icon="apartment" />
+        <rsaas-kpi-card label="Active" [value]="a.activeTenants.toString()" icon="check_circle" />
+        <rsaas-kpi-card label="Trialing" [value]="a.trialingTenants.toString()" icon="hourglass_top" />
+        <rsaas-kpi-card label="MRR" [value]="(a.monthlyRecurringRevenue | currency) ?? ''" icon="payments" />
+      </div>
+    }
+
+    <div class="rsaas-card" style="margin-top: 1.5rem">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Package</th>
+            <th>Status</th>
+            <th>Renews</th>
+            <th>Locations</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tenant of tenants(); track tenant.id) {
+            <tr>
+              <td>
+                <strong>{{ tenant.companyName }}</strong>
+                <div class="rsaas-muted">{{ tenant.contactEmail }}</div>
+              </td>
+              <td>{{ tenant.packageName }}</td>
+              <td>
+                <mat-chip [color]="statusColor(tenant.subscriptionStatus)">{{ tenant.subscriptionStatus }}</mat-chip>
+              </td>
+              <td>{{ tenant.currentPeriodEnd | date: 'mediumDate' }}</td>
+              <td>{{ tenant.restaurantCount }}</td>
+              <td>
+                @if (tenant.status !== 'Suspended') {
+                  <button mat-stroked-button color="warn" (click)="deactivate(tenant)">Deactivate</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

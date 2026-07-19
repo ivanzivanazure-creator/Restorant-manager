@@ -1,0 +1,64 @@
+.ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.ticket-card {
+  background: var(--rsaas-surface);
+  border: 1px solid var(--rsaas-border);
+  border-radius: 12px;
+  padding: 1rem;
+  border-top: 4px solid var(--rsaas-primary);
+}
+
+.ticket-card.rush {
+  border-top-color: var(--rsaas-warning);
+}
+
+.ticket-card.vip {
+  border-top-color: var(--rsaas-accent);
+}
+
+.ticket-card.overdue {
+  border-top-color: var(--rsaas-danger);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--rsaas-danger) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+.ticket-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-table {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.ticket-items {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ticket-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}

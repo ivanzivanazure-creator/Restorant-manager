@@ -10,11 +10,14 @@ Super Admin control plane.
 > [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the technical design and
 > [`docs/ERD.md`](docs/ERD.md) for the full data model.
 >
-> **Note on this environment**: the sandbox this codebase was generated in has no .NET SDK and no
-> outbound access to install one, so the backend could not be compiled or unit-tested here. The
-> Angular frontend *was* scaffolded and built for real via npm. Before relying on the backend, run
-> `dotnet build` / `dotnet test` locally or in CI (a GitHub Actions workflow is included) and fix
-> anything the compiler flags — treat this as reviewed-but-unverified code.
+> **Note on this environment**: the sandbox this codebase was generated in has no .NET SDK, and its
+> network policy blocks both `dotnet` package restore and `npm install` (registry.npmjs.org returned
+> 403 despite being nominally reachable), so neither the backend nor the Angular frontend could be
+> compiled, built, or tested here — both were hand-written to a production-quality bar but are
+> **unverified**. Before relying on either, run `dotnet build && dotnet test` (backend) and
+> `npm install && npm run build && npm test` (frontend, see
+> [`frontend/restaurant-saas-web/README.md`](frontend/restaurant-saas-web/README.md)) and fix anything
+> the compiler/build flags.
 
 ## Tech stack
 

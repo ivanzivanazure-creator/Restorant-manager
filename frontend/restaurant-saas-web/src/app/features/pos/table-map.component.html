@@ -1,0 +1,31 @@
+<div class="rsaas-page">
+  <div class="rsaas-page-header">
+    <h1>Tables</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row"><mat-spinner diameter="32" /></div>
+  } @else if (tables().length === 0) {
+    <rsaas-empty-state message="No tables set up for this location yet." icon="table_bar" />
+  } @else {
+    <div class="table-grid">
+      @for (table of tables(); track table.id) {
+        <button
+          type="button"
+          class="table-tile"
+          [class.occupied]="openOrdersByTable().has(table.id)"
+          [class.reserved]="table.status === 'Reserved'"
+          [class.cleaning]="table.status === 'Cleaning'"
+          (click)="selectTable(table)"
+        >
+          <mat-icon>table_restaurant</mat-icon>
+          <span class="table-label">{{ table.label }}</span>
+          <span class="table-capacity rsaas-muted">Seats {{ table.capacity }}</span>
+          @if (openOrdersByTable().has(table.id)) {
+            <span class="table-total">{{ openOrdersByTable().get(table.id)?.grandTotal | number: '1.2-2' }}</span>
+          }
+        </button>
+      }
+    </div>
+  }
+</div>
