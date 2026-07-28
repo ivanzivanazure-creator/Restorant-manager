@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using RestaurantSaaS.Application.Common.Exceptions;
 using ValidationException = RestaurantSaaS.Application.Common.Exceptions.ValidationException;
 
@@ -7,7 +8,7 @@ namespace RestaurantSaaS.Api.Middleware;
 
 /// <summary>Maps Application/Domain exceptions to RFC 7807 problem-details responses so callers get a
 /// consistent error shape regardless of which layer threw.</summary>
-public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, IHostEnvironment env)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -51,7 +52,9 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
         {
             Status = (int)statusCode,
             Title = title,
-            Detail = statusCode == HttpStatusCode.InternalServerError ? "An unexpected error occurred. Please contact support." : exception.Message,
+            Detail = statusCode == HttpStatusCode.InternalServerError
+                ? (env.IsProduction() ? "An unexpected error occurred. Please contact support." : exception.ToString())
+                : exception.Message,
             Instance = context.Request.Path,
         };
 

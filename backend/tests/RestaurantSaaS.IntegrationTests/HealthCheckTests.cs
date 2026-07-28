@@ -23,8 +23,9 @@ public class HealthCheckTests(CustomWebApplicationFactory factory)
         var client = factory.CreateClient();
 
         var response = await client.GetAsync("/health/ready");
+        var body = await response.Content.ReadAsStringAsync();
 
-        response.EnsureSuccessStatusCode();
+        response.IsSuccessStatusCode.Should().BeTrue($"got {response.StatusCode}: {body}");
     }
 
     [Fact]

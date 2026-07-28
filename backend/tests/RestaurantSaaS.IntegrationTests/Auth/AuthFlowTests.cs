@@ -25,7 +25,8 @@ public class AuthFlowTests(CustomWebApplicationFactory factory)
         registerTokens!.AccessToken.Should().NotBeNullOrWhiteSpace();
 
         var loginResponse = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginCommand(email, "Str0ng!Passw0rd", "integration-test-device"));
-        loginResponse.EnsureSuccessStatusCode();
+        var loginBody = await loginResponse.Content.ReadAsStringAsync();
+        loginResponse.IsSuccessStatusCode.Should().BeTrue($"login should succeed but got {loginResponse.StatusCode}: {loginBody}");
 
         var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginResultDto>();
         loginResult.Should().NotBeNull();
@@ -55,7 +56,8 @@ public class AuthFlowTests(CustomWebApplicationFactory factory)
             new RegisterOwnerCommand("Wrong PW Co", email, "Str0ng!Passw0rd", "Wrong", "Owner", "Starter"));
 
         var response = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginCommand(email, "totally-wrong-password", "device"));
+        var body = await response.Content.ReadAsStringAsync();
 
-        ((int)response.StatusCode).Should().Be(401);
+        ((int)response.StatusCode).Should().Be(401, $"response body was: {body}");
     }
 }

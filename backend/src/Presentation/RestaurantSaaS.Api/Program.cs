@@ -116,8 +116,29 @@ app.MapControllers();
 app.MapHub<KitchenHub>("/hubs/kitchen");
 app.MapHub<OrdersHub>("/hubs/orders");
 
-app.MapHealthChecks("/health"); // liveness: process is up
-app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = _ => true }); // readiness: DB + Redis reachable
+// liveness: process is up, no dependency checks run
+app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = _ => false });
+
+// readiness: DB + Redis reachable; body breaks down per-check status for diagnosability
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                error = e.Value.Exception?.Message,
+            }),
+        });
+    },
+});
 
 app.MapHangfireDashboard("/hangfire", new DashboardOptions
 {
