@@ -9,7 +9,8 @@
     <div class="loading-row"><mat-spinner diameter="32" /></div>
   } @else if (!locationContext.hasLocation()) {
     <p class="rsaas-muted">Select a location to see its dashboard.</p>
-  } @else if (summary(); as s) {
+  } @else {
+  @if (summary(); as s) {
     <div class="rsaas-kpi-grid">
       <rsaas-kpi-card label="Today's Revenue" [value]="s.todayRevenue | currency" icon="payments" />
       <rsaas-kpi-card label="Today's Orders" [value]="s.todayOrderCount.toString()" icon="receipt_long" />
@@ -48,5 +49,6 @@
         }
       </div>
     </div>
+  }
   }
 </div>

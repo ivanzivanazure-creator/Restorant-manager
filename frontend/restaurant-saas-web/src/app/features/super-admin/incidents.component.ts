@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -22,6 +22,8 @@ export class IncidentsComponent implements OnInit {
   readonly components: PlatformComponentName[] = ['Api', 'Database', 'Cache', 'Realtime', 'BackgroundJobs'];
   readonly statuses: IncidentStatus[] = ['Investigating', 'Identified', 'Monitoring', 'Resolved'];
 
+  private readonly fb = inject(FormBuilder);
+
   readonly incidents = signal<Incident[]>([]);
   readonly creating = signal(false);
 
@@ -32,10 +34,7 @@ export class IncidentsComponent implements OnInit {
     affectedComponents: [['Api'] as PlatformComponentName[], Validators.required],
   });
 
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly incidentsService: IncidentsService,
-  ) {}
+  constructor(private readonly incidentsService: IncidentsService) {}
 
   ngOnInit(): void {
     this.reload();

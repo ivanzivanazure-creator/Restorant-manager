@@ -6,7 +6,8 @@
 
   @if (loading()) {
     <div class="loading-row"><mat-spinner diameter="32" /></div>
-  } @else if (status(); as s) {
+  } @else {
+  @if (status(); as s) {
     <div class="overall-banner" [class]="healthClass(s.overallHealth)">
       <mat-icon>{{ s.overallHealth === 'Operational' ? 'check_circle' : 'error' }}</mat-icon>
       <span>{{ s.overallHealth === 'Operational' ? 'All systems operational' : healthLabels[s.overallHealth] }}</span>
@@ -45,5 +46,6 @@
         }
       }
     </div>
+  }
   }
 </div>

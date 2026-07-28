@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -28,6 +28,8 @@ import { AuthService } from '../../core/auth/auth.service';
   templateUrl: './register.component.html',
 })
 export class RegisterComponent {
+  private readonly fb = inject(FormBuilder);
+
   readonly packages = ['Starter', 'Professional', 'Unlimited'];
 
   readonly form = this.fb.nonNullable.group({
@@ -43,7 +45,6 @@ export class RegisterComponent {
   readonly errorMessage = signal<string | null>(null);
 
   constructor(
-    private readonly fb: FormBuilder,
     private readonly auth: AuthService,
     private readonly router: Router,
   ) {}

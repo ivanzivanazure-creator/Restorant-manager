@@ -1,6 +1,7 @@
 @if (loading()) {
   <div class="loading-row"><mat-spinner diameter="32" /></div>
-} @else if (order(); as o) {
+} @else {
+  @if (order(); as o) {
   <div class="order-screen">
     <section class="order-panel rsaas-card">
       <div class="rsaas-page-header">
@@ -92,4 +93,5 @@
       </section>
     }
   </div>
+  }
 }

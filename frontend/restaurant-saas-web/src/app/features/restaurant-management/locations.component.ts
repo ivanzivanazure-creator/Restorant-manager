@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,13 +22,14 @@ export class LocationsComponent implements OnInit {
   readonly loading = signal(true);
   readonly addingTable = signal(false);
 
+  private readonly fb = inject(FormBuilder);
+
   readonly tableForm = this.fb.nonNullable.group({
     label: ['', Validators.required],
     capacity: [2, [Validators.required, Validators.min(1)]],
   });
 
   constructor(
-    private readonly fb: FormBuilder,
     private readonly restaurantManagementService: RestaurantManagementService,
     readonly locationContext: LocationContextService,
   ) {}

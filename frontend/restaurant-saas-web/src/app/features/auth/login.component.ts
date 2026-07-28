@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -27,6 +27,8 @@ import { AuthService } from '../../core/auth/auth.service';
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
+  private readonly fb = inject(FormBuilder);
+
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
@@ -37,7 +39,6 @@ export class LoginComponent {
   readonly hidePassword = signal(true);
 
   constructor(
-    private readonly fb: FormBuilder,
     private readonly auth: AuthService,
     private readonly router: Router,
   ) {}

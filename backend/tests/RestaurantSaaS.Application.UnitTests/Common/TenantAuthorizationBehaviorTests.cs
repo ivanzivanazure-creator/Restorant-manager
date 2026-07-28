@@ -22,7 +22,7 @@ public class TenantAuthorizationBehaviorTests
         var behavior = new TenantAuthorizationBehavior<FakeTenantRequest, string>(tenantProvider);
         var called = false;
 
-        var result = await behavior.Handle(new FakeTenantRequest(tenantId), _ =>
+        var result = await behavior.Handle(new FakeTenantRequest(tenantId), () =>
         {
             called = true;
             return Task.FromResult("ok");
@@ -41,7 +41,7 @@ public class TenantAuthorizationBehaviorTests
 
         var behavior = new TenantAuthorizationBehavior<FakeTenantRequest, string>(tenantProvider);
 
-        var act = () => behavior.Handle(new FakeTenantRequest(Guid.NewGuid()), _ => Task.FromResult("ok"), CancellationToken.None);
+        var act = () => behavior.Handle(new FakeTenantRequest(Guid.NewGuid()), () => Task.FromResult("ok"), CancellationToken.None);
 
         await act.Should().ThrowAsync<ForbiddenAccessException>();
     }
@@ -55,7 +55,7 @@ public class TenantAuthorizationBehaviorTests
 
         var behavior = new TenantAuthorizationBehavior<FakeTenantRequest, string>(tenantProvider);
 
-        var result = await behavior.Handle(new FakeTenantRequest(Guid.NewGuid()), _ => Task.FromResult("ok"), CancellationToken.None);
+        var result = await behavior.Handle(new FakeTenantRequest(Guid.NewGuid()), () => Task.FromResult("ok"), CancellationToken.None);
 
         result.Should().Be("ok");
     }

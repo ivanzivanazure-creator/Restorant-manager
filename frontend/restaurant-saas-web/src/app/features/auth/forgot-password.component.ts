@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -14,16 +14,15 @@ import { AuthService } from '../../core/auth/auth.service';
   templateUrl: './forgot-password.component.html',
 })
 export class ForgotPasswordComponent {
+  private readonly fb = inject(FormBuilder);
+
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
   });
 
   readonly submitted = signal(false);
 
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly auth: AuthService,
-  ) {}
+  constructor(private readonly auth: AuthService) {}
 
   submit(): void {
     if (this.form.invalid) return;

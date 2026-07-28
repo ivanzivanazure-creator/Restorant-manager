@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -34,13 +34,14 @@ export class DeliveryIntegrationsComponent implements OnInit {
   readonly adding = signal(false);
   readonly justRegistered = signal<RegisterDeliveryIntegrationResponse | null>(null);
 
+  private readonly fb = inject(FormBuilder);
+
   readonly form = this.fb.nonNullable.group({
     platform: ['UberEats' as DeliveryPlatform, Validators.required],
     externalStoreId: [''],
   });
 
   constructor(
-    private readonly fb: FormBuilder,
     private readonly integrationsService: IntegrationsService,
     private readonly locationContext: LocationContextService,
   ) {}

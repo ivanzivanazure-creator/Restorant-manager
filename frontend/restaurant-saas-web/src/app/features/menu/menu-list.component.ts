@@ -1,5 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -39,6 +39,9 @@ export class MenuListComponent implements OnInit {
   readonly loading = signal(true);
   readonly addingCategory = signal(false);
 
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
+
   readonly categoryForm = this.fb.nonNullable.group({
     name: ['', Validators.required],
   });
@@ -46,10 +49,8 @@ export class MenuListComponent implements OnInit {
   readonly canManage = this.auth.hasPermission(Permissions.Menu.Manage);
 
   constructor(
-    private readonly fb: FormBuilder,
     private readonly menuService: MenuService,
     private readonly locationContext: LocationContextService,
-    private readonly auth: AuthService,
   ) {}
 
   ngOnInit(): void {
