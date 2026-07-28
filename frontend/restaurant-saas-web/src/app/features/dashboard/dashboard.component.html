@@ -12,10 +12,10 @@
   } @else {
   @if (summary(); as s) {
     <div class="rsaas-kpi-grid">
-      <rsaas-kpi-card label="Today's Revenue" [value]="s.todayRevenue | currency" icon="payments" />
+      <rsaas-kpi-card label="Today's Revenue" [value]="(s.todayRevenue | currency) ?? ''" icon="payments" />
       <rsaas-kpi-card label="Today's Orders" [value]="s.todayOrderCount.toString()" icon="receipt_long" />
-      <rsaas-kpi-card label="Avg. Order Value" [value]="s.todayAverageOrderValue | currency" icon="trending_up" />
-      <rsaas-kpi-card label="Last 7 Days" [value]="s.last7DaysRevenue | currency" icon="calendar_month" />
+      <rsaas-kpi-card label="Avg. Order Value" [value]="(s.todayAverageOrderValue | currency) ?? ''" icon="trending_up" />
+      <rsaas-kpi-card label="Last 7 Days" [value]="(s.last7DaysRevenue | currency) ?? ''" icon="calendar_month" />
     </div>
 
     <div class="rsaas-grid two-col">
