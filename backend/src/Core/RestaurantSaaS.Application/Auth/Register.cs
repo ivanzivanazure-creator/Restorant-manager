@@ -7,6 +7,7 @@ using RestaurantSaaS.Domain.Enums;
 using RestaurantSaaS.Domain.Identity;
 using RestaurantSaaS.Domain.Subscription;
 using RestaurantSaaS.Domain.Tenancy;
+using ValidationException = RestaurantSaaS.Application.Common.Exceptions.ValidationException;
 
 namespace RestaurantSaaS.Application.Auth;
 

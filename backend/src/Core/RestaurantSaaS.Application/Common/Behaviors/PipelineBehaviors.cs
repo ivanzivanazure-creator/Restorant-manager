@@ -16,7 +16,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior
         logger.LogInformation("Handling {RequestName} for user {UserId}", requestName, currentUser.UserId);
         try
         {
-            var response = await next(ct);
+            var response = await next();
             logger.LogInformation("Handled {RequestName}", requestName);
             return response;
         }
@@ -33,7 +33,7 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
 {
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken ct)
     {
-        if (!validators.Any()) return await next(ct);
+        if (!validators.Any()) return await next();
 
         var context = new ValidationContext<TRequest>(request);
         var failures = (await Task.WhenAll(validators.Select(v => v.ValidateAsync(context, ct))))
@@ -43,7 +43,7 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
 
         if (failures.Count != 0) throw new ValidationException(failures);
 
-        return await next(ct);
+        return await next();
     }
 }
 
@@ -65,6 +65,6 @@ public sealed class TenantAuthorizationBehavior<TRequest, TResponse>(ITenantProv
             if (tenantProvider.TenantId is null || tenantProvider.TenantId != scoped.TenantId)
                 throw new ForbiddenAccessException("Request targets a tenant other than the caller's own.");
         }
-        return next(ct);
+        return next();
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using RestaurantSaaS.Application.Common.Exceptions;
 using RestaurantSaaS.Application.Common.Interfaces;
 using RestaurantSaaS.Domain.Identity;
+using ValidationException = RestaurantSaaS.Application.Common.Exceptions.ValidationException;
 
 namespace RestaurantSaaS.Application.Auth;
 
