@@ -20,6 +20,11 @@ public class Order : TenantAuditableEntity
     public DateTimeOffset OpenedAt { get; private set; }
     public DateTimeOffset? ClosedAt { get; private set; }
 
+    /// <summary>Set when Source == ThirdPartyDelivery: which platform (UberEats/DoorDash/...) the order
+    /// was ingested from and that platform's own order id, for reconciliation/support lookups.</summary>
+    public DeliveryPlatform? DeliveryPlatform { get; private set; }
+    public string? ExternalOrderReference { get; private set; }
+
     private readonly List<OrderItem> _items = [];
     public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
 
@@ -55,6 +60,12 @@ public class Order : TenantAuditableEntity
         CreatedAt = OpenedAt;
 
         AddDomainEvent(new OrderPlacedEvent(Id, TenantId, LocationId));
+    }
+
+    public void AttachDeliverySource(DeliveryPlatform platform, string externalOrderReference)
+    {
+        this.DeliveryPlatform = platform;
+        ExternalOrderReference = externalOrderReference;
     }
 
     public OrderItem AddItem(Guid productVariantId, string productName, string variantName, Money unitPrice, int quantity, string? notes)

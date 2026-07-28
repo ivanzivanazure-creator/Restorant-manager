@@ -4,12 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using RestaurantSaaS.Application.Common.Behaviors;
 using RestaurantSaaS.Application.Common.Exceptions;
 using RestaurantSaaS.Application.Common.Interfaces;
+using RestaurantSaaS.Domain.Billing;
 using RestaurantSaaS.Domain.Enums;
-using RestaurantSaaS.Domain.Inventory;
-using RestaurantSaaS.Domain.Kitchen;
-using RestaurantSaaS.Domain.Menu;
 using RestaurantSaaS.Domain.Pos;
-using RestaurantSaaS.Domain.Recipes;
+using RestaurantSaaS.Domain.Subscription;
 
 namespace RestaurantSaaS.Application.Pos;
 
@@ -19,7 +17,7 @@ namespace RestaurantSaaS.Application.Pos;
 public sealed record SendOrderToKitchenCommand(Guid TenantId, Guid OrderId, Guid WarehouseId, int TargetCookMinutes)
     : IRequest<Guid>, ITenantScopedRequest;
 
-public sealed class SendOrderToKitchenCommandHandler(IApplicationDbContext db, IRealtimeNotifier realtime)
+public sealed class SendOrderToKitchenCommandHandler(IApplicationDbContext db, OrderKitchenDispatchService dispatchService)
     : IRequestHandler<SendOrderToKitchenCommand, Guid>
 {
     public async Task<Guid> Handle(SendOrderToKitchenCommand request, CancellationToken ct)
@@ -28,59 +26,8 @@ public sealed class SendOrderToKitchenCommandHandler(IApplicationDbContext db, I
             .SingleOrDefaultAsync(o => o.Id == request.OrderId && o.TenantId == request.TenantId, ct)
             ?? throw new NotFoundException(nameof(Order), request.OrderId);
 
-        string? tableLabel = null;
-        if (order.TableId is not null)
-        {
-            tableLabel = (await db.Tables.SingleOrDefaultAsync(t => t.Id == order.TableId, ct))?.Label;
-        }
-
-        var ticket = new KitchenTicket(request.TenantId, order.Id, order.LocationId, tableLabel, request.TargetCookMinutes);
-        foreach (var item in order.Items)
-        {
-            ticket.AddItem(item.Id, item.ProductName, item.VariantName, item.Quantity, item.Notes);
-        }
-        db.Set<KitchenTicket>().Add(ticket);
-
-        await DeductInventoryAsync(order, request.WarehouseId, ct);
-
-        order.SendToKitchen();
-        await db.SaveChangesAsync(ct);
-
-        await realtime.NotifyKitchenAsync(order.LocationId, new
-        {
-            @event = "ticket-queued",
-            ticketId = ticket.Id,
-            orderId = order.Id,
-            tableLabel,
-            items = ticket.Items.Select(i => new { i.ProductName, i.VariantName, i.Quantity, i.Notes }),
-        }, ct);
-
+        var ticket = await dispatchService.DispatchAsync(order, request.WarehouseId, request.TargetCookMinutes, ct);
         return ticket.Id;
-    }
-
-    private async Task DeductInventoryAsync(Order order, Guid warehouseId, CancellationToken ct)
-    {
-        foreach (var item in order.Items)
-        {
-            var variant = await db.Set<ProductVariant>().SingleAsync(v => v.Id == item.ProductVariantId, ct);
-            var recipe = await db.Set<Recipe>().Include(r => r.Ingredients)
-                .SingleOrDefaultAsync(r => r.ProductId == variant.ProductId, ct);
-            if (recipe is null) continue; // no recipe modeled yet for this product — nothing to deduct
-
-            foreach (var line in recipe.Ingredients)
-            {
-                var stock = await db.Set<StockLevel>().Include(s => s.Batches)
-                    .SingleOrDefaultAsync(s => s.WarehouseId == warehouseId && s.IngredientId == line.IngredientId, ct);
-                if (stock is null) continue;
-
-                var ingredientName = (await db.Ingredients.SingleAsync(i => i.Id == line.IngredientId, ct)).Name;
-                stock.Consume(line.Quantity * item.Quantity, ingredientName);
-
-                db.StockMovements.Add(new Domain.Inventory.StockMovement(
-                    order.TenantId, warehouseId, line.IngredientId, StockMovementType.Sale,
-                    -(line.Quantity * item.Quantity), reference: order.Id.ToString(), performedByEmployeeId: order.ServerEmployeeId));
-            }
-        }
     }
 }
 
@@ -108,11 +55,31 @@ public sealed class PayOrderCommandHandler(IApplicationDbContext db, IRealtimeNo
             table?.SetCleaning();
         }
 
+        await RecordPlatformFeeIfApplicableAsync(order, payment, ct);
+
         await db.SaveChangesAsync(ct);
 
         await realtime.NotifyOrdersAsync(order.LocationId, new { @event = "order-paid", orderId = order.Id, order.Status }, ct);
 
         return new PaymentDto(payment.Id, payment.Method, payment.Amount, payment.Status, payment.Reference);
+    }
+
+    /// <summary>Usage-based revenue: card-rail payments (Card/MobileWallet) for tenants on a package with
+    /// a non-zero TransactionFeePercent generate a PlatformFeeLedgerEntry — the accounting record behind
+    /// the platform's take-rate. Cash/Voucher/RoomCharge never carry a platform fee since no card network
+    /// touched them. See docs/ARCHITECTURE.md "Billing & platform fees".</summary>
+    private async Task RecordPlatformFeeIfApplicableAsync(Order order, Payment payment, CancellationToken ct)
+    {
+        if (payment.Method is not (PaymentMethod.Card or PaymentMethod.MobileWallet)) return;
+
+        var subscription = await db.Set<TenantSubscription>().SingleOrDefaultAsync(s => s.TenantId == order.TenantId, ct);
+        if (subscription is null) return;
+
+        var package = await db.Packages.SingleOrDefaultAsync(p => p.Id == subscription.PackageId, ct);
+        if (package is null || package.TransactionFeePercent <= 0) return;
+
+        db.PlatformFeeLedgerEntries.Add(new PlatformFeeLedgerEntry(
+            order.TenantId, payment.Id, order.Id, payment.Amount, package.TransactionFeePercent, payment.Currency));
     }
 }
 

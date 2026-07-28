@@ -15,9 +15,18 @@ public class Package : AuditableEntity
     public bool IsActive { get; private set; } = true;
     public IReadOnlyDictionary<string, bool> FeatureFlags { get; private set; } = new Dictionary<string, bool>();
 
+    /// <summary>Take-rate on card payments processed through the POS for tenants on this package —
+    /// the platform's usage-based revenue line, separate from (and additive to) the flat subscription
+    /// price. Charged via Stripe Connect application fees; see Billing/PlatformFeeLedgerEntry.</summary>
+    public decimal TransactionFeePercent { get; private set; }
+
+    public SlaTier SlaTier { get; private set; } = SlaTier.Standard;
+    public decimal SlaUptimeTargetPercent { get; private set; } = 99.5m;
+
     private Package() { }
 
     public Package(string name, int? maxUsers, int maxLocations, decimal monthlyPrice, decimal yearlyPrice,
+        decimal transactionFeePercent = 0m, SlaTier slaTier = SlaTier.Standard, decimal slaUptimeTargetPercent = 99.5m,
         IReadOnlyDictionary<string, bool>? featureFlags = null)
     {
         Name = name;
@@ -25,6 +34,9 @@ public class Package : AuditableEntity
         MaxLocations = maxLocations;
         MonthlyPrice = monthlyPrice;
         YearlyPrice = yearlyPrice;
+        TransactionFeePercent = transactionFeePercent;
+        SlaTier = slaTier;
+        SlaUptimeTargetPercent = slaUptimeTargetPercent;
         FeatureFlags = featureFlags ?? new Dictionary<string, bool>();
         CreatedAt = DateTimeOffset.UtcNow;
     }

@@ -12,6 +12,12 @@ public class RestaurantOwner : AuditableEntity
     public TenantStatus Status { get; private set; } = TenantStatus.Trial;
     public Guid PrimaryUserId { get; private set; }
 
+    /// <summary>Stripe Connect (Express) account this tenant's card payments are split-paid into, minus
+    /// the platform's transaction fee (Package.TransactionFeePercent). Null until the tenant completes
+    /// onboarding via Billing/ConnectStripeAccountCommand.</summary>
+    public string? StripeConnectedAccountId { get; private set; }
+    public bool StripeOnboardingComplete { get; private set; }
+
     private readonly List<Restaurant> _restaurants = [];
     public IReadOnlyCollection<Restaurant> Restaurants => _restaurants.AsReadOnly();
 
@@ -29,6 +35,9 @@ public class RestaurantOwner : AuditableEntity
     public void Activate() => Status = TenantStatus.Active;
     public void Suspend() => Status = TenantStatus.Suspended;
     public void Cancel() => Status = TenantStatus.Cancelled;
+
+    public void AttachStripeConnectedAccount(string stripeConnectedAccountId) => StripeConnectedAccountId = stripeConnectedAccountId;
+    public void MarkStripeOnboardingComplete() => StripeOnboardingComplete = true;
 
     public Restaurant AddRestaurant(string name, string legalName, string defaultCurrency)
     {

@@ -13,6 +13,8 @@ public class PackageConfiguration : IEntityTypeConfiguration<Package>
         builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
         builder.Property(x => x.MonthlyPrice).HasColumnType("numeric(10,2)");
         builder.Property(x => x.YearlyPrice).HasColumnType("numeric(10,2)");
+        builder.Property(x => x.TransactionFeePercent).HasColumnType("numeric(5,2)");
+        builder.Property(x => x.SlaUptimeTargetPercent).HasColumnType("numeric(5,2)");
         builder.Property(x => x.FeatureFlags)
             .HasConversion(JsonValueConverter<IReadOnlyDictionary<string, bool>>.Converter, JsonValueConverter<IReadOnlyDictionary<string, bool>>.Comparer)
             .HasColumnType("jsonb");

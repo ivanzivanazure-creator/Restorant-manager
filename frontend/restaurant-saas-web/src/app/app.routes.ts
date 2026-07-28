@@ -3,6 +3,12 @@ import { authGuard, superAdminGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
+    // Public status page — deliberately outside authGuard; anyone (including logged-out prospects
+    // checking uptime before signing up) can view it.
+    path: 'status',
+    loadComponent: () => import('./features/status/status-page.component').then((m) => m.StatusPageComponent),
+  },
+  {
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
@@ -41,6 +47,14 @@ export const routes: Routes = [
       {
         path: 'inventory',
         loadChildren: () => import('./features/inventory/inventory.routes').then((m) => m.INVENTORY_ROUTES),
+      },
+      {
+        path: 'billing',
+        loadChildren: () => import('./features/billing/billing.routes').then((m) => m.BILLING_ROUTES),
+      },
+      {
+        path: 'integrations',
+        loadChildren: () => import('./features/integrations/integrations.routes').then((m) => m.INTEGRATIONS_ROUTES),
       },
     ],
   },

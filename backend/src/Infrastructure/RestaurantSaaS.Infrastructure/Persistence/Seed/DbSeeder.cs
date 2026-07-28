@@ -68,6 +68,7 @@ public static class DbSeeder
                 Permissions.Kitchen.ManageTickets, Permissions.Kitchen.ViewQueue,
                 Permissions.Inventory.Manage, Permissions.Inventory.View, Permissions.Inventory.ApproveProcurement,
                 Permissions.Dashboard.View,
+                Permissions.Billing.Manage, Permissions.Billing.View, Permissions.Integrations.Manage,
             ],
             ["Manager"] =
             [
@@ -77,6 +78,7 @@ public static class DbSeeder
                 Permissions.Kitchen.ManageTickets, Permissions.Kitchen.ViewQueue,
                 Permissions.Inventory.Manage, Permissions.Inventory.View,
                 Permissions.Dashboard.View,
+                Permissions.Billing.View, Permissions.Integrations.Manage,
             ],
             ["Waiter"] = [Permissions.Pos.OpenOrder, Permissions.Pos.ModifyOrder, Permissions.Pos.TakePayment, Permissions.Pos.ViewOrders, Permissions.Menu.View],
             ["Chef"] = [Permissions.Kitchen.ManageTickets, Permissions.Kitchen.ViewQueue, Permissions.Inventory.View, Permissions.Menu.View],
@@ -110,9 +112,12 @@ public static class DbSeeder
         if (await db.Packages.AnyAsync(ct)) return;
 
         db.Packages.AddRange(
-            new Package("Starter", maxUsers: 5, maxLocations: 1, monthlyPrice: 49m, yearlyPrice: 490m),
-            new Package("Professional", maxUsers: 10, maxLocations: 3, monthlyPrice: 99m, yearlyPrice: 990m),
+            new Package("Starter", maxUsers: 5, maxLocations: 1, monthlyPrice: 49m, yearlyPrice: 490m,
+                transactionFeePercent: 1.9m, slaTier: SlaTier.Standard, slaUptimeTargetPercent: 99.5m),
+            new Package("Professional", maxUsers: 10, maxLocations: 3, monthlyPrice: 99m, yearlyPrice: 990m,
+                transactionFeePercent: 1.5m, slaTier: SlaTier.Standard, slaUptimeTargetPercent: 99.5m),
             new Package("Unlimited", maxUsers: null, maxLocations: int.MaxValue, monthlyPrice: 249m, yearlyPrice: 2490m,
+                transactionFeePercent: 1.0m, slaTier: SlaTier.Premium, slaUptimeTargetPercent: 99.9m,
                 featureFlags: new Dictionary<string, bool> { ["hotelModule"] = true, ["aiAssistant"] = true }));
 
         await db.SaveChangesAsync(ct);

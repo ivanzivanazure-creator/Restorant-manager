@@ -1,3 +1,5 @@
+using RestaurantSaaS.Domain.Enums;
+
 namespace RestaurantSaaS.Application.Common.Interfaces;
 
 /// <summary>Resolves the current tenant (RestaurantOwner id) from the authenticated principal's JWT claims.
@@ -80,6 +82,19 @@ public interface IPaymentGatewayService
     Task<string> CreateCustomerAsync(string email, string name, CancellationToken ct);
     Task<string> CreateSubscriptionAsync(string customerId, string priceId, CancellationToken ct);
     Task CancelSubscriptionAsync(string subscriptionId, CancellationToken ct);
+
+    /// <summary>Creates a Stripe Connect (Express) account for a tenant so their card payments can be
+    /// split-paid to them minus the platform's transaction fee. Returns the connected account id.</summary>
+    Task<string> CreateConnectedAccountAsync(string tenantContactEmail, string companyName, CancellationToken ct);
+
+    /// <summary>A hosted onboarding link (KYC, bank details) the tenant is redirected to after
+    /// CreateConnectedAccountAsync; expires after a few minutes per Stripe's own policy.</summary>
+    Task<string> CreateAccountOnboardingLinkAsync(string connectedAccountId, string returnUrl, string refreshUrl, CancellationToken ct);
+
+    /// <summary>Captures a card payment with an application fee routed to the platform's own Stripe
+    /// account, the rest to the tenant's connected account. Returns the Stripe PaymentIntent id.</summary>
+    Task<string> CapturePaymentWithApplicationFeeAsync(
+        string connectedAccountId, decimal amount, string currency, decimal applicationFeeAmount, CancellationToken ct);
 }
 
 /// <summary>Publishes real-time events to SignalR hub groups. Implemented in Infrastructure to keep
@@ -88,4 +103,13 @@ public interface IRealtimeNotifier
 {
     Task NotifyKitchenAsync(Guid locationId, object payload, CancellationToken ct = default);
     Task NotifyOrdersAsync(Guid locationId, object payload, CancellationToken ct = default);
+}
+
+/// <summary>Live health probe backing the public status page. Api/Realtime/BackgroundJobs are reported
+/// Operational by definition (if this code is executing, the API process is up) unless an open incident
+/// says otherwise; Database/Cache are checked live via a real connection attempt — see
+/// PlatformHealthCheckerService in Infrastructure.</summary>
+public interface IPlatformHealthChecker
+{
+    Task<IReadOnlyDictionary<PlatformComponent, ComponentHealth>> CheckAsync(CancellationToken ct);
 }

@@ -112,6 +112,52 @@ enriched with `TenantId`, `CorrelationId` (from `X-Correlation-Id` header or gen
 `RequestPath`. `AuditLog` domain entity records who-did-what-when for sensitive mutations
 (subscription changes, refunds, inventory corrections, employee/role changes).
 
+## Billing & platform fees
+
+Beyond the flat subscription price (`Package.MonthlyPrice`/`YearlyPrice`), each package carries a
+`TransactionFeePercent` — a take-rate on card-rail payments (Card/MobileWallet), mirroring how POS
+SaaS platforms actually make most of their money (payment processing, not software fees). Mechanics:
+
+- A tenant connects a **Stripe Connect (Express)** account (`Billing/ConnectStripeAccountCommand`);
+  `RestaurantOwner.StripeConnectedAccountId`/`StripeOnboardingComplete` track the result, updated by
+  a Stripe webhook (`account.updated`) once KYC/onboarding finishes.
+- Every card payment `PayOrderCommandHandler` captures writes a `PlatformFeeLedgerEntry` — the audit
+  trail behind the fee, computed from the tenant's package rate at payment time. Cash/voucher/room-charge
+  payments never carry a fee (no card network involved).
+- Today this is an **accounting record**, not a live charge-split: in-person card payments are assumed
+  captured by the restaurant's own terminal outside this system. `IPaymentGatewayService.CapturePaymentWithApplicationFeeAsync`
+  (Stripe `PaymentIntent` with `application_fee_amount` + `transfer_data.destination`) is implemented
+  and ready for whenever a tokenized checkout (QR self-order, Stripe Terminal) exists to drive it —
+  see `docs/ROADMAP.md`.
+- `Billing/GetBillingSummaryQuery` gives each tenant a self-serve view of fees charged this month/all-time.
+
+## Onboarding
+
+`Onboarding/GetOnboardingStatusQuery` computes a checklist (has a location? a menu item? a table? a
+team member? a connected payment account?) from existing data rather than a separate "wizard progress"
+table — there's nothing to get out of sync, and finishing the underlying action always completes the
+step even if the tenant never opens the checklist UI. Shown as a dismissible card on the Dashboard.
+
+## Delivery platform integrations
+
+A tenant registers a `DeliveryIntegration` per (location, platform) and receives a webhook URL + a
+one-time-shown secret (`Integrations/RegisterDeliveryIntegrationCommand`). The platform then posts
+orders to `POST /api/v1/integrations/delivery/{platform}/webhook/{locationId}`, authenticated by that
+shared secret (`X-Webhook-Secret` header) rather than a JWT — the caller is UberEats/DoorDash, not a
+logged-in staff member. `Integrations/IngestDeliveryOrderCommand` matches line items to the tenant's
+active menu by product name and feeds them into the same `Order`/POS/Kitchen Display pipeline as an
+in-house order (via the shared `OrderKitchenDispatchService`, also used by the POS "send to kitchen"
+action) — see `docs/ROADMAP.md` for what a real per-platform payload adapter still needs.
+
+## Status page & SLA
+
+`Status/GetPublicStatusQuery` backs an unauthenticated `/api/v1/status` endpoint (and the Angular
+`/status` route, outside the auth guard) showing live component health — Database/Cache are checked
+via a real connection attempt (`IPlatformHealthChecker`); Api/Realtime/BackgroundJobs report
+Operational by definition unless an open `SystemIncident` (SuperAdmin-managed) says otherwise — plus
+recent incident history. `Package.SlaTier`/`SlaUptimeTargetPercent` ties a package to the uptime
+commitment shown to that tenant.
+
 ## API design
 
 REST + OpenAPI (Swashbuckle), versioned via URL segment (`/api/v1/...`), problem-details (RFC 7807)

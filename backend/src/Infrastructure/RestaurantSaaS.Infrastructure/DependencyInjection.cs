@@ -173,5 +173,6 @@ public static class DependencyInjection
         services.AddScoped<IPaymentGatewayService, StripePaymentGatewayService>();
         services.AddSingleton<IFileStorageService>(_ =>
             new LocalFileStorageService(Path.Combine(AppContext.BaseDirectory, "wwwroot", "uploads")));
+        services.AddScoped<IPlatformHealthChecker, PlatformHealthCheckerService>();
     }
 }

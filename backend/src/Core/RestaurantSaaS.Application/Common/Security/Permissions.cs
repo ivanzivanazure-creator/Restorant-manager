@@ -57,6 +57,24 @@ public static class Permissions
         public const string View = "dashboard.view";
     }
 
+    public static class Billing
+    {
+        public const string Manage = "billing.manage";
+        public const string View = "billing.view";
+    }
+
+    public static class Integrations
+    {
+        public const string Manage = "integrations.manage";
+    }
+
+    public static class Status
+    {
+        /// <summary>Managing incidents is a platform-operator action, not a tenant one — gated behind
+        /// SuperAdminAccess rather than its own key. The public status page itself needs no permission.</summary>
+        public const string ManageIncidents = SuperAdminAccess;
+    }
+
     /// <summary>All permission keys, used to seed the Permission table and to enumerate dynamic
     /// authorization policies at startup.</summary>
     public static IReadOnlyCollection<string> All { get; } =
@@ -69,5 +87,7 @@ public static class Permissions
         Kitchen.ManageTickets, Kitchen.ViewQueue,
         Inventory.Manage, Inventory.View, Inventory.ApproveProcurement,
         Dashboard.View,
+        Billing.Manage, Billing.View,
+        Integrations.Manage,
     ];
 }

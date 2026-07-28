@@ -16,6 +16,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(x => x.Currency).HasMaxLength(3).IsRequired();
         builder.Property(x => x.TaxRatePercent).HasColumnType("numeric(5,2)");
         builder.Property(x => x.TipAmount).HasColumnType("numeric(10,2)");
+        builder.Property(x => x.ExternalOrderReference).HasMaxLength(100);
 
         // Computed monetary totals are derived in-memory from Items/Discounts/Payments — not persisted columns.
         builder.Ignore(x => x.Subtotal);

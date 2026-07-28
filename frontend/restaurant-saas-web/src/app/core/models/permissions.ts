@@ -35,4 +35,11 @@ export const Permissions = {
   Dashboard: {
     View: 'dashboard.view',
   },
+  Billing: {
+    Manage: 'billing.manage',
+    View: 'billing.view',
+  },
+  Integrations: {
+    Manage: 'integrations.manage',
+  },
 } as const;

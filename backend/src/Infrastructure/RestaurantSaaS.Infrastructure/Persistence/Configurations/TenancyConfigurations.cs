@@ -12,6 +12,7 @@ public class RestaurantOwnerConfiguration : IEntityTypeConfiguration<RestaurantO
         builder.HasKey(x => x.Id);
         builder.Property(x => x.CompanyName).HasMaxLength(200).IsRequired();
         builder.Property(x => x.ContactEmail).HasMaxLength(256).IsRequired();
+        builder.Property(x => x.StripeConnectedAccountId).HasMaxLength(100);
         builder.HasIndex(x => x.ContactEmail);
         builder.HasMany(x => x.Restaurants).WithOne().HasForeignKey(r => r.TenantId).OnDelete(DeleteBehavior.Cascade);
     }

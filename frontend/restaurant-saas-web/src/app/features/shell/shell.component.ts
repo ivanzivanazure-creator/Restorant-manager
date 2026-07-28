@@ -45,6 +45,8 @@ export class ShellComponent {
     { label: 'Menu', icon: 'restaurant_menu', path: '/menu', permission: Permissions.Menu.View },
     { label: 'Inventory', icon: 'inventory_2', path: '/inventory', permission: Permissions.Inventory.View },
     { label: 'Restaurant', icon: 'storefront', path: '/restaurant-management', permission: Permissions.Tenancy.ManageLocations },
+    { label: 'Billing', icon: 'account_balance', path: '/billing', permission: Permissions.Billing.View },
+    { label: 'Integrations', icon: 'delivery_dining', path: '/integrations', permission: Permissions.Integrations.Manage },
     { label: 'Super Admin', icon: 'admin_panel_settings', path: '/super-admin', superAdminOnly: true },
   ];
 

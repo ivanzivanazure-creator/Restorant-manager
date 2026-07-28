@@ -1,0 +1,23 @@
+@if (status(); as s) {
+  @if (!s.isComplete && !dismissed()) {
+    <div class="rsaas-card onboarding-card">
+      <div class="onboarding-header">
+        <h2>Get your restaurant set up</h2>
+        <button mat-icon-button (click)="dismiss()" matTooltip="Hide checklist">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <ul class="onboarding-steps">
+        @for (step of s.steps; track step.key) {
+          <li [class.done]="step.isComplete">
+            <mat-icon>{{ step.isComplete ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            <span>{{ step.label }}</span>
+            @if (!step.isComplete) {
+              <button mat-button color="primary" (click)="goTo(step.actionRoute)">Go</button>
+            }
+          </li>
+        }
+      </ul>
+    </div>
+  }
+}

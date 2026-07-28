@@ -1,0 +1,49 @@
+<div class="status-page">
+  <div class="status-header">
+    <mat-icon>restaurant</mat-icon>
+    <h1>Restaurant SaaS Status</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row"><mat-spinner diameter="32" /></div>
+  } @else if (status(); as s) {
+    <div class="overall-banner" [class]="healthClass(s.overallHealth)">
+      <mat-icon>{{ s.overallHealth === 'Operational' ? 'check_circle' : 'error' }}</mat-icon>
+      <span>{{ s.overallHealth === 'Operational' ? 'All systems operational' : healthLabels[s.overallHealth] }}</span>
+    </div>
+
+    <div class="rsaas-card">
+      <h2>Components</h2>
+      <div class="component-list">
+        @for (component of s.components; track component.component) {
+          <div class="component-row">
+            <span>{{ componentLabels[component.component] }}</span>
+            <mat-chip [class]="healthClass(component.health)">{{ healthLabels[component.health] }}</mat-chip>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="rsaas-card" style="margin-top: 1.5rem">
+      <h2>Incident history</h2>
+      @if (s.recentIncidents.length === 0) {
+        <p class="rsaas-muted">No incidents reported recently.</p>
+      } @else {
+        @for (incident of s.recentIncidents; track incident.id) {
+          <div class="incident">
+            <div class="incident-header">
+              <strong>{{ incident.title }}</strong>
+              <mat-chip [class]="incident.status === 'Resolved' ? 'operational' : 'degradedperformance'">{{ incident.status }}</mat-chip>
+            </div>
+            <p class="rsaas-muted">{{ incident.description }}</p>
+            <ul class="incident-updates">
+              @for (update of incident.updates; track update.postedAt) {
+                <li><span class="rsaas-muted">{{ update.postedAt | date: 'short' }}</span> — {{ update.message }}</li>
+              }
+            </ul>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

@@ -7,11 +7,12 @@ import { LocationContextService } from '../../core/services/location-context.ser
 import { KpiCardComponent } from '../../shared/components/kpi-card.component';
 import { DashboardSummary } from '../../core/models/domain.models';
 import { DashboardService } from './dashboard.service';
+import { OnboardingChecklistComponent } from './onboarding-checklist.component';
 
 @Component({
   selector: 'rsaas-dashboard',
   standalone: true,
-  imports: [CurrencyPipe, MatIconModule, MatChipsModule, MatProgressSpinnerModule, KpiCardComponent],
+  imports: [CurrencyPipe, MatIconModule, MatChipsModule, MatProgressSpinnerModule, KpiCardComponent, OnboardingChecklistComponent],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {

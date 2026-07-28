@@ -1,6 +1,10 @@
 <div class="rsaas-page">
   <div class="rsaas-page-header">
     <h1>Super Admin</h1>
+    <button mat-stroked-button routerLink="/super-admin/incidents">
+      <mat-icon>report</mat-icon>
+      Manage incidents
+    </button>
   </div>
 
   @if (loading()) {

@@ -3,6 +3,8 @@
     <h1>Dashboard</h1>
   </div>
 
+  <rsaas-onboarding-checklist />
+
   @if (loading()) {
     <div class="loading-row"><mat-spinner diameter="32" /></div>
   } @else if (!locationContext.hasLocation()) {

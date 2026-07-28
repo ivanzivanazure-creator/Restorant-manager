@@ -222,3 +222,77 @@ export interface PlatformAnalytics {
   lockedTenants: number;
   monthlyRecurringRevenue: number;
 }
+
+// ---- Billing / Onboarding / Integrations / Status ----
+
+export interface BillingSummary {
+  stripeConnected: boolean;
+  onboardingComplete: boolean;
+  transactionFeePercent: number;
+  feesChargedThisMonth: number;
+  transactionCountThisMonth: number;
+  feesChargedAllTime: number;
+}
+
+export interface OnboardingStep {
+  key: string;
+  label: string;
+  isComplete: boolean;
+  actionRoute: string;
+}
+
+export interface OnboardingStatus {
+  isComplete: boolean;
+  steps: OnboardingStep[];
+}
+
+export type DeliveryPlatform = 'UberEats' | 'DoorDash' | 'GrubHub' | 'Deliveroo' | 'Other';
+
+export interface DeliveryIntegration {
+  id: string;
+  locationId: string;
+  platform: DeliveryPlatform;
+  externalStoreId: string | null;
+  isActive: boolean;
+  lastOrderReceivedAt: string | null;
+}
+
+export interface RegisterDeliveryIntegrationResponse {
+  integration: DeliveryIntegration;
+  webhookSecret: string;
+  webhookUrl: string;
+}
+
+export type PlatformComponentName = 'Api' | 'Database' | 'Cache' | 'Realtime' | 'BackgroundJobs';
+export type ComponentHealth = 'Operational' | 'DegradedPerformance' | 'PartialOutage' | 'MajorOutage';
+export type IncidentStatus = 'Investigating' | 'Identified' | 'Monitoring' | 'Resolved';
+export type IncidentSeverity = 'Minor' | 'Major' | 'Critical';
+
+export interface ComponentStatus {
+  component: PlatformComponentName;
+  health: ComponentHealth;
+}
+
+export interface IncidentUpdateEntry {
+  status: IncidentStatus;
+  message: string;
+  postedAt: string;
+}
+
+export interface Incident {
+  id: string;
+  title: string;
+  description: string;
+  severity: IncidentSeverity;
+  status: IncidentStatus;
+  affectedComponents: PlatformComponentName[];
+  startedAt: string;
+  resolvedAt: string | null;
+  updates: IncidentUpdateEntry[];
+}
+
+export interface PublicStatus {
+  overallHealth: ComponentHealth;
+  components: ComponentStatus[];
+  recentIncidents: Incident[];
+}

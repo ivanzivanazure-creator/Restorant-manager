@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using RestaurantSaaS.Domain.Billing;
 using RestaurantSaaS.Domain.Crm;
 using RestaurantSaaS.Domain.Employees;
 using RestaurantSaaS.Domain.Hotel;
 using RestaurantSaaS.Domain.Identity;
+using RestaurantSaaS.Domain.Integrations;
 using RestaurantSaaS.Domain.Inventory;
 using RestaurantSaaS.Domain.Kitchen;
 using RestaurantSaaS.Domain.Menu;
@@ -12,6 +14,7 @@ using RestaurantSaaS.Domain.Procurement;
 using RestaurantSaaS.Domain.Recipes;
 using RestaurantSaaS.Domain.Reporting;
 using RestaurantSaaS.Domain.RestaurantOps;
+using RestaurantSaaS.Domain.Status;
 using RestaurantSaaS.Domain.Subscription;
 using RestaurantSaaS.Domain.Tenancy;
 
@@ -89,6 +92,11 @@ public interface IApplicationDbContext
     // Notifications / Reporting
     DbSet<Notification> Notifications { get; }
     DbSet<DailySalesSummary> DailySalesSummaries { get; }
+
+    // Billing / Integrations / Status
+    DbSet<PlatformFeeLedgerEntry> PlatformFeeLedgerEntries { get; }
+    DbSet<DeliveryIntegration> DeliveryIntegrations { get; }
+    DbSet<SystemIncident> SystemIncidents { get; }
 
     DbSet<TEntity> Set<TEntity>() where TEntity : class;
 

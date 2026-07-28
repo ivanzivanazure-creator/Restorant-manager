@@ -1,0 +1,48 @@
+.onboarding-card {
+  margin-bottom: 1.5rem;
+}
+
+.onboarding-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+}
+
+.onboarding-steps {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.onboarding-steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+
+  mat-icon {
+    color: var(--rsaas-text-muted);
+  }
+
+  &.done {
+    span {
+      text-decoration: line-through;
+      color: var(--rsaas-text-muted);
+    }
+    mat-icon {
+      color: var(--rsaas-success);
+    }
+  }
+
+  span {
+    flex: 1;
+  }
+}
