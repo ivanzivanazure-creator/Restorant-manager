@@ -149,9 +149,16 @@ public static class DependencyInjection
 
     private static void AddRealtime(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSignalR().AddStackExchangeRedis(
-            configuration.GetConnectionString("Redis") ?? "localhost:6379",
-            options => options.Configuration.ChannelPrefix = RedisChannel.Literal("restaurant-saas-signalr"));
+        // Unlike AddCaching, the (connectionString, configure) overload here reads the connection string
+        // eagerly at registration time. Using ConnectionFactory instead defers the read until the backplane
+        // actually connects (on first hub publish), so config sources merged in later — e.g. a test host's
+        // WebApplicationFactory.ConfigureAppConfiguration override — are still picked up.
+        services.AddSignalR().AddStackExchangeRedis(options =>
+        {
+            options.Configuration.ChannelPrefix = RedisChannel.Literal("restaurant-saas-signalr");
+            options.ConnectionFactory = async writer =>
+                await ConnectionMultiplexer.ConnectAsync(configuration.GetConnectionString("Redis") ?? "localhost:6379", writer);
+        });
 
         services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
     }
