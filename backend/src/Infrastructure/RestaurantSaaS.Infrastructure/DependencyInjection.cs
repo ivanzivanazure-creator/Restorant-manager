@@ -76,13 +76,6 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-        var jwt = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions
-        {
-            SigningKey = "development-only-signing-key-change-me-please-32chars-min",
-            Issuer = "RestaurantSaaS",
-            Audience = "RestaurantSaaS.Clients",
-        };
-
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -90,6 +83,20 @@ public static class DependencyInjection
             })
             .AddJwtBearer(options =>
             {
+                // Read lazily, inside the options callback, rather than into a local captured before this
+                // method returns: this callback only actually runs once JwtBearerOptions is first resolved
+                // (after the host is fully built), so config sources added later — e.g. a test host's
+                // WebApplicationFactory.ConfigureAppConfiguration override — are picked up. Reading eagerly
+                // here previously caused a signing-key mismatch against JwtTokenService (which resolves
+                // IOptions<JwtOptions> lazily and so always saw the correct value), making every token minted
+                // in a test host fail validation on the very next authenticated request.
+                var jwt = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions
+                {
+                    SigningKey = "development-only-signing-key-change-me-please-32chars-min",
+                    Issuer = "RestaurantSaaS",
+                    Audience = "RestaurantSaaS.Clients",
+                };
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
