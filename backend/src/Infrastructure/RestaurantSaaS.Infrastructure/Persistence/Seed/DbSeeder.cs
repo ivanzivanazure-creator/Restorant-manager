@@ -190,6 +190,12 @@ public static class DbSeeder
             db.Tables.Add(table);
         }
 
+        // Flush the tenant/subscription/restaurant/locations/departments/tables graph before the next
+        // Identity call: UserManager.CreateAsync/UpdateAsync auto-saves the DbContext internally, which
+        // would otherwise also try to flush this whole still-pending graph as a side effect and could
+        // surface as a spurious DbUpdateConcurrencyException on the user insert.
+        await db.SaveChangesAsync(ct);
+
         // ---- Staff ----
         var managerUser = await CreateUserAsync(userManager, "manager@bellapizza.demo", "Manager!2026", "Maria", "Manager");
         var waiterUser = await CreateUserAsync(userManager, "waiter@bellapizza.demo", "Waiter!2026", "Will", "Waiter");
