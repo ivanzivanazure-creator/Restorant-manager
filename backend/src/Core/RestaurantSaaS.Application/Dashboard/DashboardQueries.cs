@@ -23,10 +23,14 @@ public sealed class GetDashboardSummaryQueryHandler(IApplicationDbContext db, ID
         var today = DateOnly.FromDateTime(dateTime.UtcNow.UtcDateTime);
         var sevenDaysAgo = today.AddDays(-6);
 
+        // DateOnly.ToDateTime always produces Kind=Unspecified, which Npgsql rejects when comparing
+        // against a `timestamp with time zone` column — only Kind=Utc is accepted.
+        var todayUtc = DateTime.SpecifyKind(today.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+
         var paidOrdersToday = await db.Orders
             .Where(o => o.LocationId == request.LocationId && o.TenantId == request.TenantId
                 && o.Status == OrderStatus.Paid && o.ClosedAt != null
-                && o.ClosedAt.Value.UtcDateTime.Date == today.ToDateTime(TimeOnly.MinValue))
+                && o.ClosedAt.Value.UtcDateTime.Date == todayUtc)
             .ToListAsync(ct);
 
         var todayRevenue = paidOrdersToday.Sum(o => o.GrandTotal);
