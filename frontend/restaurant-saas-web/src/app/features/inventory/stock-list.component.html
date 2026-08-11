@@ -1,0 +1,54 @@
+<div class="rsaas-page">
+  <div class="rsaas-page-header">
+    <h1>Inventory</h1>
+    @if (warehouses().length > 1) {
+      <mat-select
+        [value]="selectedWarehouseId()"
+        (selectionChange)="selectWarehouse($event.value)"
+        style="max-width: 220px"
+      >
+        @for (warehouse of warehouses(); track warehouse.id) {
+          <mat-option [value]="warehouse.id">{{ warehouse.name }}</mat-option>
+        }
+      </mat-select>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row"><mat-spinner diameter="32" /></div>
+  } @else if (stock().length === 0) {
+    <rsaas-empty-state message="No ingredients tracked in this warehouse yet." icon="inventory_2" />
+  } @else {
+    <div class="rsaas-card">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th>Ingredient</th>
+            <th>On hand</th>
+            <th>Unit</th>
+            <th>Reorder threshold</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of stock(); track item.ingredientId) {
+            <tr [class.low]="item.isBelowThreshold">
+              <td>{{ item.ingredientName }}</td>
+              <td>{{ item.quantityOnHand | number: '1.0-3' }}</td>
+              <td>{{ item.unit }}</td>
+              <td>{{ item.reorderThreshold | number: '1.0-3' }}</td>
+              <td>
+                @if (item.isBelowThreshold) {
+                  <mat-chip color="warn">
+                    <mat-icon>warning</mat-icon>
+                    Low stock
+                  </mat-chip>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

@@ -1,0 +1,60 @@
+<div class="rsaas-page">
+  <div class="rsaas-page-header">
+    <h1>Menu</h1>
+    @if (canManage) {
+      <button mat-flat-button color="primary" (click)="addingCategory.set(!addingCategory())">
+        <mat-icon>add</mat-icon>
+        Add category
+      </button>
+    }
+  </div>
+
+  @if (addingCategory()) {
+    <form class="rsaas-card add-category-form" [formGroup]="categoryForm" (ngSubmit)="addCategory()">
+      <mat-form-field appearance="outline">
+        <mat-label>Category name</mat-label>
+        <input matInput formControlName="name" placeholder="e.g. Pizza, Drinks, Desserts" />
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="submit" [disabled]="categoryForm.invalid">Save</button>
+    </form>
+  }
+
+  @if (loading()) {
+    <div class="loading-row"><mat-spinner diameter="32" /></div>
+  } @else if (categories().length === 0) {
+    <rsaas-empty-state message="No menu categories yet." icon="restaurant_menu" />
+  } @else {
+    <mat-accordion multi>
+      @for (category of categories(); track category.id) {
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>{{ category.name }}</mat-panel-title>
+            <mat-panel-description>{{ category.products.length }} item(s)</mat-panel-description>
+          </mat-expansion-panel-header>
+
+          @for (product of category.products; track product.id) {
+            <div class="product-row">
+              <div class="product-info">
+                <strong>{{ product.name }}</strong>
+                <span class="rsaas-muted">{{ product.description }}</span>
+                @if (product.allergens.length > 0) {
+                  <mat-chip-set>
+                    @for (allergen of product.allergens; track allergen) {
+                      <mat-chip>{{ allergen }}</mat-chip>
+                    }
+                  </mat-chip-set>
+                }
+              </div>
+              <div class="product-price">{{ product.basePrice | currency: product.currency }}</div>
+              @if (canManage) {
+                <mat-slide-toggle [checked]="product.isActive" (change)="toggleProduct(product.id, $event.checked)">
+                  Active
+                </mat-slide-toggle>
+              }
+            </div>
+          }
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  }
+</div>

@@ -1,0 +1,63 @@
+<div class="rsaas-page">
+  <div class="rsaas-page-header">
+    <h1>Delivery Integrations</h1>
+    <button mat-flat-button color="primary" (click)="adding.set(!adding())">
+      <mat-icon>add</mat-icon>
+      Connect a platform
+    </button>
+  </div>
+
+  @if (justRegistered(); as reg) {
+    <div class="rsaas-card secret-banner">
+      <mat-icon color="warn">vpn_key</mat-icon>
+      <div>
+        <strong>Save this webhook secret now — it won't be shown again.</strong>
+        <p class="rsaas-muted">Paste these into {{ reg.integration.platform }}'s merchant portal integration settings.</p>
+        <p>Webhook URL: <code>{{ reg.webhookUrl }}</code></p>
+        <p>Secret: <code>{{ reg.webhookSecret }}</code></p>
+      </div>
+    </div>
+  }
+
+  @if (adding()) {
+    <form class="rsaas-card add-category-form" [formGroup]="form" (ngSubmit)="register()">
+      <mat-form-field appearance="outline">
+        <mat-label>Platform</mat-label>
+        <mat-select formControlName="platform">
+          @for (platform of platforms; track platform) {
+            <mat-option [value]="platform">{{ platform }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Store ID (optional)</mat-label>
+        <input matInput formControlName="externalStoreId" />
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Connect</button>
+    </form>
+  }
+
+  @if (integrations().length === 0) {
+    <rsaas-empty-state message="No delivery platforms connected yet." icon="delivery_dining" />
+  } @else {
+    <div class="rsaas-card">
+      @for (integration of integrations(); track integration.id) {
+        <div class="table-list-row">
+          <div>
+            <strong>{{ integration.platform }}</strong>
+            @if (integration.externalStoreId) {
+              <span class="rsaas-muted"> — store {{ integration.externalStoreId }}</span>
+            }
+            <div class="rsaas-muted">
+              {{ integration.lastOrderReceivedAt ? 'Last order ' + (integration.lastOrderReceivedAt | date: 'short') : 'No orders received yet' }}
+            </div>
+          </div>
+          <mat-chip [color]="integration.isActive ? 'primary' : undefined">{{ integration.isActive ? 'Active' : 'Inactive' }}</mat-chip>
+          @if (integration.isActive) {
+            <button mat-stroked-button color="warn" (click)="deactivate(integration)">Deactivate</button>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

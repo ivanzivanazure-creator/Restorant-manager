@@ -9,6 +9,10 @@
 
   <ItemGroup>
     <PackageReference Include="MediatR" Version="12.4.1" />
+    <!-- IApplicationDbContext exposes DbSet<T> and Application handlers use EF Core's IQueryable
+         extensions (Include/ToListAsync/AnyAsync/...) directly, so this project needs the abstractions
+         package even though the concrete provider (Npgsql) only lives in Infrastructure. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
     <PackageReference Include="FluentValidation" Version="11.11.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
     <PackageReference Include="Mapster" Version="7.4.0" />

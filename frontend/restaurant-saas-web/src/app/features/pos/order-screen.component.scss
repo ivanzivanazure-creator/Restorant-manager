@@ -1,0 +1,109 @@
+.order-screen {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 1rem;
+  padding: 1.5rem;
+  align-items: start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.status-badge {
+  background: color-mix(in srgb, var(--rsaas-primary) 15%, transparent);
+  color: var(--rsaas-primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+}
+
+.order-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.item-notes {
+  font-size: 0.8rem;
+}
+
+.totals {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.totals-row.grand {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-top: 0.25rem;
+}
+
+.tip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.tip-input {
+  flex: 1;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.pay-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.menu-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  padding-top: 1rem;
+}
+
+.menu-product-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--rsaas-border);
+  background: var(--rsaas-surface);
+  cursor: pointer;
+  text-align: left;
+  color: var(--rsaas-text);
+
+  &:hover {
+    border-color: var(--rsaas-primary);
+  }
+}

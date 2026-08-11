@@ -1,0 +1,48 @@
+.table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.table-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.25rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--rsaas-border);
+  background: var(--rsaas-surface);
+  cursor: pointer;
+  color: var(--rsaas-text);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+
+  &:hover {
+    box-shadow: var(--rsaas-shadow);
+    transform: translateY(-2px);
+  }
+
+  &.occupied {
+    border-color: var(--rsaas-primary);
+    background: color-mix(in srgb, var(--rsaas-primary) 8%, var(--rsaas-surface));
+  }
+
+  &.reserved {
+    border-color: var(--rsaas-accent);
+  }
+
+  &.cleaning {
+    opacity: 0.6;
+  }
+}
+
+.table-label {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.table-total {
+  margin-top: 0.25rem;
+  font-weight: 600;
+  color: var(--rsaas-primary);
+}

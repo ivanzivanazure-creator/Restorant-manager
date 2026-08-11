@@ -1,0 +1,63 @@
+<div class="rsaas-page">
+  <div class="rsaas-page-header">
+    <h1>Incidents</h1>
+    <button mat-flat-button color="primary" (click)="creating.set(!creating())">
+      <mat-icon>add</mat-icon>
+      Open incident
+    </button>
+  </div>
+
+  @if (creating()) {
+    <form class="rsaas-card add-category-form" [formGroup]="form" (ngSubmit)="create()" style="flex-direction: column; align-items: stretch">
+      <mat-form-field appearance="outline">
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description" rows="2"></textarea>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Severity</mat-label>
+        <mat-select formControlName="severity">
+          @for (severity of severities; track severity) {
+            <mat-option [value]="severity">{{ severity }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Affected components</mat-label>
+        <mat-select formControlName="affectedComponents" multiple>
+          @for (component of components; track component) {
+            <mat-option [value]="component">{{ component }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Publish</button>
+    </form>
+  }
+
+  @if (incidents().length === 0) {
+    <rsaas-empty-state message="No incidents." icon="check_circle" />
+  } @else {
+    @for (incident of incidents(); track incident.id) {
+      <div class="rsaas-card" style="margin-bottom: 1rem">
+        <div class="rsaas-page-header">
+          <div>
+            <strong>{{ incident.title }}</strong>
+            <div class="rsaas-muted">{{ incident.startedAt | date: 'medium' }}</div>
+          </div>
+          <mat-chip>{{ incident.status }}</mat-chip>
+        </div>
+        <p>{{ incident.description }}</p>
+        @if (incident.status !== 'Resolved') {
+          <div class="incident-actions">
+            @for (status of statuses; track status) {
+              <button mat-stroked-button (click)="postUpdate(incident, status)">{{ status }}</button>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

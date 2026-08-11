@@ -1,0 +1,34 @@
+<div class="rsaas-page">
+  <div class="rsaas-page-header">
+    <h1>Billing & Payments</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row"><mat-spinner diameter="32" /></div>
+  } @else {
+  @if (summary(); as s) {
+    @if (!s.stripeConnected || !s.onboardingComplete) {
+      <div class="rsaas-card connect-banner">
+        <div>
+          <h2>Connect a payment account</h2>
+          <p class="rsaas-muted">
+            Connect Stripe to receive card payments directly to your bank account. The platform takes a
+            {{ s.transactionFeePercent / 100 | percent: '1.1-2' }} fee on card transactions — no fee on cash.
+          </p>
+        </div>
+        <button mat-flat-button color="primary" (click)="connect()" [disabled]="connecting()">
+          <mat-icon>account_balance</mat-icon>
+          {{ s.stripeConnected ? 'Finish onboarding' : 'Connect with Stripe' }}
+        </button>
+      </div>
+    }
+
+    <div class="rsaas-kpi-grid" style="margin-top: 1.5rem">
+      <rsaas-kpi-card label="Transaction fee rate" [value]="(s.transactionFeePercent / 100 | percent: '1.1-2') ?? ''" icon="percent" />
+      <rsaas-kpi-card label="Fees this month" [value]="(s.feesChargedThisMonth | currency) ?? ''" icon="receipt" />
+      <rsaas-kpi-card label="Card transactions this month" [value]="s.transactionCountThisMonth.toString()" icon="credit_card" />
+      <rsaas-kpi-card label="Fees all time" [value]="(s.feesChargedAllTime | currency) ?? ''" icon="payments" />
+    </div>
+  }
+  }
+</div>

@@ -17,8 +17,13 @@ Fully implemented (Domain + Application/CQRS + API + real-time where relevant + 
 - [x] POS: open table, orders, split bill, merge tables, discounts, tips, cash/card/voucher payments, refunds, automatic inventory deduction on order completion
 - [x] Kitchen Display: real-time queue (SignalR), priority, cooking timer, ready notification
 - [x] Inventory (core): warehouses, ingredients, stock levels, stock movements, FIFO batches, purchase orders + goods receipt
-- [x] Dashboard: revenue, today's sales, KPIs, kitchen status, inventory alerts
-- [x] Super Admin portal: tenant/package management, activate/deactivate, analytics
+- [x] Dashboard: revenue, today's sales, KPIs, kitchen status, inventory alerts, onboarding checklist
+- [x] Super Admin portal: tenant/package management, activate/deactivate, analytics, incident management
+- [x] Billing: Stripe Connect onboarding, usage-based platform fee (take-rate) on card payments,
+      per-tenant billing summary — see "Billing & platform fees" in `docs/ARCHITECTURE.md`
+- [x] Delivery platform integrations: webhook-based order ingestion (generic payload, name-matched
+      against the tenant's menu) feeding the same Order/POS/KDS pipeline as an in-house order
+- [x] Public status page + incident history, SLA tier per package
 
 ## Phase 2 — modeled in Domain now, needs Application/API/UI
 
@@ -37,6 +42,16 @@ Fully implemented (Domain + Application/CQRS + API + real-time where relevant + 
 - [ ] **Notifications (delivery)** — SMS (Twilio) and Push (FCM/APNs) provider adapters; email adapter
       is implemented (SMTP + templated), the interface (`INotificationSender`) is provider-agnostic so
       SMS/Push are additive
+- [ ] **Per-platform delivery adapters** — UberEats and DoorDash each have their own webhook payload
+      shape and their own SKU/menu-sync APIs; today's `IngestDeliveryOrderCommand` takes a generic,
+      already-normalized payload and matches items by product name. A real go-live needs one small
+      adapter per platform that translates their actual webhook JSON into that generic shape (and
+      ideally a SKU mapping table instead of name matching)
+- [ ] **Tokenized in-app payment capture** — `IPaymentGatewayService.CapturePaymentWithApplicationFeeAsync`
+      is implemented and ready, but nothing calls it yet: today's POS assumes card payments are captured
+      by the restaurant's own card terminal outside this system, and `PayOrderCommandHandler` only
+      records the platform-fee ledger entry for reporting/reconciliation. Wiring a real charge (QR
+      self-order checkout with Stripe Elements, or Stripe Terminal for card-present POS) is additive
 
 ## Phase 3
 

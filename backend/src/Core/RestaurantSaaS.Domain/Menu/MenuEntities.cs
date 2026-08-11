@@ -182,6 +182,8 @@ public class MenuAvailabilityRule : BaseEntity
     public DateOnly? StartDate { get; private set; }
     public DateOnly? EndDate { get; private set; }
 
+    private MenuAvailabilityRule() { }
+
     public MenuAvailabilityRule(Guid productId, DayOfWeek? dayOfWeek, TimeRange? hours, DateOnly? startDate, DateOnly? endDate)
     {
         ProductId = productId;

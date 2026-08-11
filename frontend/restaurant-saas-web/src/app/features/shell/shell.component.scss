@@ -1,0 +1,40 @@
+.shell {
+  height: 100vh;
+}
+
+.shell-nav {
+  width: 240px;
+  background: var(--rsaas-surface);
+  border-right: 1px solid var(--rsaas-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem 1rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--rsaas-primary);
+}
+
+.active-link {
+  background: color-mix(in srgb, var(--rsaas-primary) 12%, transparent);
+  color: var(--rsaas-primary);
+}
+
+.shell-toolbar {
+  background: var(--rsaas-surface);
+  border-bottom: 1px solid var(--rsaas-border);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.shell-main {
+  background: var(--rsaas-bg);
+  min-height: calc(100vh - 64px);
+}

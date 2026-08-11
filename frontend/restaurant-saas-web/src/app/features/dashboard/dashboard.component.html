@@ -1,0 +1,54 @@
+<div class="rsaas-page">
+  <div class="rsaas-page-header">
+    <h1>Dashboard</h1>
+  </div>
+
+  <rsaas-onboarding-checklist />
+
+  @if (loading()) {
+    <div class="loading-row"><mat-spinner diameter="32" /></div>
+  } @else if (!locationContext.hasLocation()) {
+    <p class="rsaas-muted">Select a location to see its dashboard.</p>
+  } @else {
+  @if (summary(); as s) {
+    <div class="rsaas-kpi-grid">
+      <rsaas-kpi-card label="Today's Revenue" [value]="(s.todayRevenue | currency) ?? ''" icon="payments" />
+      <rsaas-kpi-card label="Today's Orders" [value]="s.todayOrderCount.toString()" icon="receipt_long" />
+      <rsaas-kpi-card label="Avg. Order Value" [value]="(s.todayAverageOrderValue | currency) ?? ''" icon="trending_up" />
+      <rsaas-kpi-card label="Last 7 Days" [value]="(s.last7DaysRevenue | currency) ?? ''" icon="calendar_month" />
+    </div>
+
+    <div class="rsaas-grid two-col">
+      <div class="rsaas-card">
+        <h2>Kitchen status</h2>
+        <div class="status-row">
+          <mat-chip-set>
+            <mat-chip>Queued: {{ s.kitchen.queued }}</mat-chip>
+            <mat-chip color="accent">In progress: {{ s.kitchen.inProgress }}</mat-chip>
+            <mat-chip color="primary">Ready: {{ s.kitchen.ready }}</mat-chip>
+            @if (s.kitchen.overdue > 0) {
+              <mat-chip color="warn">Overdue: {{ s.kitchen.overdue }}</mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      </div>
+
+      <div class="rsaas-card">
+        <h2>Inventory alerts</h2>
+        @if (s.inventoryAlerts.length === 0) {
+          <p class="rsaas-muted">No low-stock ingredients right now.</p>
+        } @else {
+          <ul class="alert-list">
+            @for (alert of s.inventoryAlerts; track alert.ingredientId) {
+              <li>
+                <mat-icon color="warn">warning</mat-icon>
+                {{ alert.ingredientName }} — {{ alert.quantityOnHand }} on hand (threshold {{ alert.reorderThreshold }})
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  }
+  }
+</div>

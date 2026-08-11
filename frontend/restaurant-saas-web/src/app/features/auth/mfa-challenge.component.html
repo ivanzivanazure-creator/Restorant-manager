@@ -1,0 +1,19 @@
+<div class="auth-page">
+  <mat-card class="auth-card">
+    <h1>Two-factor authentication</h1>
+    <p class="rsaas-muted">Enter the 6-digit code from your authenticator app.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Authentication code</mat-label>
+        <input matInput formControlName="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" />
+      </mat-form-field>
+
+      @if (errorMessage()) {
+        <p class="error-text">{{ errorMessage() }}</p>
+      }
+
+      <button mat-flat-button color="primary" class="full-width" type="submit" [disabled]="form.invalid">Verify</button>
+    </form>
+  </mat-card>
+</div>

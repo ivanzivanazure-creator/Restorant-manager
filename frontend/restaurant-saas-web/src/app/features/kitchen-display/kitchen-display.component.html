@@ -1,0 +1,50 @@
+<div class="rsaas-page">
+  <div class="rsaas-page-header">
+    <h1>Kitchen Display</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-row"><mat-spinner diameter="32" /></div>
+  } @else if (tickets().length === 0) {
+    <rsaas-empty-state message="No active tickets. Kitchen is caught up!" icon="check_circle" />
+  } @else {
+    <div class="ticket-grid">
+      @for (ticket of tickets(); track ticket.id) {
+        <div class="ticket-card" [class.rush]="ticket.priority === 'Rush'" [class.vip]="ticket.priority === 'Vip'" [class.overdue]="ticket.isOverdue">
+          <div class="ticket-header">
+            <span class="ticket-table">{{ ticket.tableLabel ?? 'Takeaway' }}</span>
+            <button mat-icon-button [matMenuTriggerFor]="priorityMenu">
+              <mat-icon>flag</mat-icon>
+            </button>
+            <mat-menu #priorityMenu="matMenu">
+              <button mat-menu-item (click)="setPriority(ticket, 'Normal')">Normal</button>
+              <button mat-menu-item (click)="setPriority(ticket, 'Rush')">Rush</button>
+              <button mat-menu-item (click)="setPriority(ticket, 'Vip')">VIP</button>
+            </mat-menu>
+          </div>
+
+          <ul class="ticket-items">
+            @for (item of ticket.items; track item.id) {
+              <li>{{ item.quantity }}× {{ item.productName }} <span class="rsaas-muted">({{ item.variantName }})</span></li>
+            }
+          </ul>
+
+          <div class="ticket-footer">
+            <span class="rsaas-muted">Target: {{ ticket.targetCookMinutes }} min</span>
+            @switch (ticket.status) {
+              @case ('Queued') {
+                <button mat-flat-button color="primary" (click)="start(ticket)">Start</button>
+              }
+              @case ('InProgress') {
+                <button mat-flat-button color="primary" (click)="markReady(ticket)">Mark ready</button>
+              }
+              @case ('Ready') {
+                <button mat-flat-button (click)="markServed(ticket)">Mark served</button>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

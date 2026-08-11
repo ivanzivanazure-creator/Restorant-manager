@@ -55,3 +55,15 @@ public enum Allergen
 }
 
 public enum MeasurementUnit { Gram, Kilogram, Milliliter, Liter, Piece, Portion }
+
+public enum DeliveryPlatform { UberEats, DoorDash, GrubHub, Deliveroo, Other }
+
+public enum SlaTier { Standard, Premium }
+
+public enum IncidentStatus { Investigating, Identified, Monitoring, Resolved }
+
+public enum IncidentSeverity { Minor, Major, Critical }
+
+public enum PlatformComponent { Api, Database, Cache, Realtime, BackgroundJobs }
+
+public enum ComponentHealth { Operational, DegradedPerformance, PartialOutage, MajorOutage }
