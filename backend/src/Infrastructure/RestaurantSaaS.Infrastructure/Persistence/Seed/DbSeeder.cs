@@ -166,6 +166,7 @@ public static class DbSeeder
 
         ownerUser.TenantId = tenant.Id;
         await userManager.UpdateAsync(ownerUser);
+        db.UserRoles.Add(new UserRole(ownerUser.Id, roles["Owner"].Id, tenant.Id, locationId: null));
 
         var subscription = new TenantSubscription(tenant.Id, (await db.Packages.SingleAsync(p => p.Name == "Professional", ct)).Id, BillingCycle.Monthly);
         subscription.Activate("cus_demo", "sub_demo", DateTimeOffset.UtcNow.AddMonths(1));
