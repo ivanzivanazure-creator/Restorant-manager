@@ -5,6 +5,7 @@ using Hangfire.Dashboard;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RestaurantSaaS.Api.Middleware;
 using RestaurantSaaS.Application;
