@@ -20,13 +20,18 @@ builder.Services.AddScoped<DailyReportAggregationJob>();
 
 var app = builder.Build();
 
-RecurringJob.AddOrUpdate<SubscriptionExpirationJob>(
+// AddHangfire only registers JobStorage through DI, not the legacy static JobStorage.Current — the
+// static RecurringJob.AddOrUpdate API relies on that global and throws "not initialized" here. Use the
+// DI-resolved IRecurringJobManager instead, per Hangfire's own guidance.
+var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
+
+recurringJobs.AddOrUpdate<SubscriptionExpirationJob>(
     "subscription-expiration", job => job.RunAsync(CancellationToken.None), Cron.Hourly, new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
-RecurringJob.AddOrUpdate<LowStockAlertJob>(
+recurringJobs.AddOrUpdate<LowStockAlertJob>(
     "low-stock-alerts", job => job.RunAsync(CancellationToken.None), "*/15 * * * *", new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
-RecurringJob.AddOrUpdate<DailyReportAggregationJob>(
+recurringJobs.AddOrUpdate<DailyReportAggregationJob>(
     "daily-report-aggregation", job => job.RunAsync(CancellationToken.None), Cron.Daily(1, 0), new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
 app.Run();
