@@ -14,45 +14,32 @@ namespace RestaurantSaaS.IntegrationTests;
 /// <summary>Exercises the demo tenant seeder end-to-end (something no other integration test does, since
 /// the shared factory boots with SeedDemoData=false for speed) — the only realistic way to verify the
 /// seed data actually works, since this sandbox can't run `docker compose up` itself (registry access is
-/// blocked) to check it by hand.</summary>
+/// blocked) to check it by hand. Kept to a single [Fact]/single host: the seeder is only ever meant to
+/// run once against a given database (exactly what happens in real usage — only the `api` container runs
+/// it, never `worker`), so a second independent host seeding the same already-seeded database concurrently
+/// is not a scenario worth hardening for.</summary>
 [Collection(nameof(IntegrationTestCollection))]
 public class DemoSeedDataTests(CustomWebApplicationFactory factory)
 {
-    private HttpClient CreateSeededClient() =>
-        factory.WithWebHostBuilder(builder =>
+    [Fact]
+    public async Task DemoTenant_LoginWorksAndDashboardShowsSeededActivity()
+    {
+        var client = factory.WithWebHostBuilder(builder =>
             builder.ConfigureAppConfiguration((_, config) =>
                 config.AddInMemoryCollection(new Dictionary<string, string?> { ["SeedDemoData"] = "true" })))
             .CreateClient();
-
-    [Fact]
-    public async Task DemoOwner_CanLogIn()
-    {
-        var client = CreateSeededClient();
-
-        var response = await client.PostAsJsonAsync("/api/v1/auth/login",
-            new LoginCommand("owner@bellapizza.demo", "Owner!2026", "integration-test-device"));
-        var body = await response.Content.ReadAsStringAsync();
-        response.IsSuccessStatusCode.Should().BeTrue($"login should succeed but got {response.StatusCode}: {body}");
-
-        var result = await response.Content.ReadFromJsonAsync<LoginResultDto>();
-        result.Should().NotBeNull();
-        result!.RequiresMfa.Should().BeFalse();
-        result.Tokens.Should().NotBeNull();
-        result.Tokens!.AccessToken.Should().NotBeNullOrWhiteSpace();
-    }
-
-    [Fact]
-    public async Task DemoTenant_DashboardShowsSeededRevenueAndKitchenActivity()
-    {
-        var client = CreateSeededClient();
 
         var loginResponse = await client.PostAsJsonAsync("/api/v1/auth/login",
             new LoginCommand("owner@bellapizza.demo", "Owner!2026", "integration-test-device"));
         var loginBody = await loginResponse.Content.ReadAsStringAsync();
         loginResponse.IsSuccessStatusCode.Should().BeTrue($"login should succeed but got {loginResponse.StatusCode}: {loginBody}");
         var login = await loginResponse.Content.ReadFromJsonAsync<LoginResultDto>();
+        login.Should().NotBeNull();
+        login!.RequiresMfa.Should().BeFalse();
+        login.Tokens.Should().NotBeNull();
+        login.Tokens!.AccessToken.Should().NotBeNullOrWhiteSpace();
 
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", login!.Tokens!.AccessToken);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", login.Tokens.AccessToken);
 
         var locationsResponse = await client.GetAsync("/api/v1/restaurant-management/locations");
         var locationsBody = await locationsResponse.Content.ReadAsStringAsync();
