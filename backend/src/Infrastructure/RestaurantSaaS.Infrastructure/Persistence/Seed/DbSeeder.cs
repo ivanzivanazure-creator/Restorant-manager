@@ -202,7 +202,7 @@ public static class DbSeeder
         // ---- Staff ----
         var managerUser = await CreateUserAsync(userManager, "manager@bellapizza.demo", "Manager!2026", "Maria", "Manager");
         var waiterUser = await CreateUserAsync(userManager, "waiter@bellapizza.demo", "Waiter!2026", "Will", "Waiter");
-        var chefUser = await CreateUserAsync(userManager, "chef@bellapizza.demo", "Chef!2026", "Carlos", "Chef");
+        var chefUser = await CreateUserAsync(userManager, "chef@bellapizza.demo", "ChefUser!2026", "Carlos", "Chef");
 
         foreach (var (user, roleName) in new[] { (managerUser, "Manager"), (waiterUser, "Waiter"), (chefUser, "Chef") })
         {
