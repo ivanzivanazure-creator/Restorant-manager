@@ -194,7 +194,15 @@ public static class DbSeeder
         // Identity call: UserManager.CreateAsync/UpdateAsync auto-saves the DbContext internally, which
         // would otherwise also try to flush this whole still-pending graph as a side effect and could
         // surface as a spurious DbUpdateConcurrencyException on the user insert.
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+        {
+            var entries = string.Join(", ", ex.Entries.Select(e => $"{e.Entity.GetType().Name}(state={e.State})"));
+            throw new InvalidOperationException($"DIAGNOSTIC: SaveChanges failed for entries: {entries}", ex);
+        }
 
         // ---- Staff ----
         var managerUser = await CreateUserAsync(userManager, "manager@bellapizza.demo", "Manager!2026", "Maria", "Manager");
