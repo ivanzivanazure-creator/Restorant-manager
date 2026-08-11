@@ -172,10 +172,14 @@ public static class DbSeeder
         db.TenantSubscriptions.Add(subscription);
 
         var restaurant = tenant.AddRestaurant("Bella Pizza", "Bella Pizza LLC", "USD");
+        db.Restaurants.Add(restaurant);
 
         var downtown = restaurant.AddLocation("Downtown", "123 Main St", "Springfield", "USA", "USD");
         var uptown = restaurant.AddLocation("Uptown", "456 Elm St", "Springfield", "USA", "USD");
-        downtown.SetTaxConfig(new TaxConfig(tenant.Id, downtown.Id, 8.25m, "Sales Tax"));
+        db.Locations.AddRange(downtown, uptown);
+        var taxConfig = new TaxConfig(tenant.Id, downtown.Id, 8.25m, "Sales Tax");
+        downtown.SetTaxConfig(taxConfig);
+        db.Set<TaxConfig>().Add(taxConfig);
 
         var kitchenDept = new Department(tenant.Id, downtown.Id, "Kitchen");
         var floorDept = new Department(tenant.Id, downtown.Id, "Front of House");
@@ -192,17 +196,8 @@ public static class DbSeeder
 
         // Flush the tenant/subscription/restaurant/locations/departments/tables graph before the next
         // Identity call: UserManager.CreateAsync/UpdateAsync auto-saves the DbContext internally, which
-        // would otherwise also try to flush this whole still-pending graph as a side effect and could
-        // surface as a spurious DbUpdateConcurrencyException on the user insert.
-        try
-        {
-            await db.SaveChangesAsync(ct);
-        }
-        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
-        {
-            var entries = string.Join(", ", ex.Entries.Select(e => $"{e.Entity.GetType().Name}(state={e.State})"));
-            throw new InvalidOperationException($"DIAGNOSTIC: SaveChanges failed for entries: {entries}", ex);
-        }
+        // would otherwise also try to flush this whole still-pending graph as a side effect.
+        await db.SaveChangesAsync(ct);
 
         // ---- Staff ----
         var managerUser = await CreateUserAsync(userManager, "manager@bellapizza.demo", "Manager!2026", "Maria", "Manager");
