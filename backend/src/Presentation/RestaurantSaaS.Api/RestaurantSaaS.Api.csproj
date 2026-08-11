@@ -15,6 +15,13 @@
     <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <!-- dotnet-ef requires the STARTUP project (this one) to reference Design too, not just the project
+         that owns the DbContext — otherwise `migrations add` fails with "doesn't reference
+         Microsoft.EntityFrameworkCore.Design" even though Infrastructure already has it. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
