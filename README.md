@@ -98,14 +98,20 @@ cp .env.example .env   # fill in secrets (JWT signing key, Stripe test key, etc.
 docker compose up --build
 ```
 
-This starts: `postgres`, `redis`, `api` (http://localhost:5000, Swagger at `/swagger`),
-`worker` (Hangfire dashboard at http://localhost:5001/hangfire), and `web` (Angular, http://localhost:4200).
+This starts: `postgres`, `redis`, `api` (http://localhost:5000, Swagger at `/swagger`, and a more modern
+API explorer at `/scalar/v1`), `worker` (Hangfire dashboard at http://localhost:5001/hangfire), and `web`
+(Angular, http://localhost:4200).
 
-On first run the API creates the schema (`EnsureCreatedAsync`, straight from the current EF Core model —
-see the `TODO` at the top of `Program.cs`: no versioned migrations exist yet, since this repo was
-generated in a sandbox with no .NET SDK / no network access to `dotnet-ef`; generate a real
-`InitialCreate` migration and switch to `MigrateAsync` before your first production deploy) and seeds
-demo data — see [Seed data / sample logins](#seed-data--sample-logins) below.
+On first run the API applies the `InitialCreate` EF Core migration (`db.Database.MigrateAsync()` in
+`Program.cs`) and seeds demo data — see [Seed data / sample logins](#seed-data--sample-logins) below.
+When you change the domain model, generate the next migration with:
+
+```bash
+cd backend
+dotnet ef migrations add <DescriptiveName> \
+  --project src/Infrastructure/RestaurantSaaS.Infrastructure \
+  --startup-project src/Presentation/RestaurantSaaS.Api
+```
 
 ### Run backend locally without Docker
 

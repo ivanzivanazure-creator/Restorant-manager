@@ -85,12 +85,7 @@ using (var scope = app.Services.CreateScope())
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     var seedDemoData = builder.Configuration.GetValue("SeedDemoData", app.Environment.IsDevelopment());
 
-    // TODO before first production deploy: this repo has no EF Core migrations yet (generated in a
-    // sandbox with no .NET SDK / no network access to restore dotnet-ef). Run, once, from backend/:
-    //   dotnet ef migrations add InitialCreate --project src/Infrastructure/RestaurantSaaS.Infrastructure --startup-project src/Presentation/RestaurantSaaS.Api
-    // then replace the line below with `await db.Database.MigrateAsync();` so schema changes are
-    // versioned and applied incrementally instead of derived fresh from the current model every boot.
-    await db.Database.EnsureCreatedAsync();
+    await db.Database.MigrateAsync();
 
     await DbSeeder.SeedAsync(db, userManager, logger, seedDemoData);
 }
