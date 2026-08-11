@@ -166,16 +166,21 @@ public static class DbSeeder
 
         ownerUser.TenantId = tenant.Id;
         await userManager.UpdateAsync(ownerUser);
+        db.UserRoles.Add(new UserRole(ownerUser.Id, roles["Owner"].Id, tenant.Id, locationId: null));
 
         var subscription = new TenantSubscription(tenant.Id, (await db.Packages.SingleAsync(p => p.Name == "Professional", ct)).Id, BillingCycle.Monthly);
         subscription.Activate("cus_demo", "sub_demo", DateTimeOffset.UtcNow.AddMonths(1));
         db.TenantSubscriptions.Add(subscription);
 
         var restaurant = tenant.AddRestaurant("Bella Pizza", "Bella Pizza LLC", "USD");
+        db.Restaurants.Add(restaurant);
 
         var downtown = restaurant.AddLocation("Downtown", "123 Main St", "Springfield", "USA", "USD");
         var uptown = restaurant.AddLocation("Uptown", "456 Elm St", "Springfield", "USA", "USD");
-        downtown.SetTaxConfig(new TaxConfig(tenant.Id, downtown.Id, 8.25m, "Sales Tax"));
+        db.Locations.AddRange(downtown, uptown);
+        var taxConfig = new TaxConfig(tenant.Id, downtown.Id, 8.25m, "Sales Tax");
+        downtown.SetTaxConfig(taxConfig);
+        db.Set<TaxConfig>().Add(taxConfig);
 
         var kitchenDept = new Department(tenant.Id, downtown.Id, "Kitchen");
         var floorDept = new Department(tenant.Id, downtown.Id, "Front of House");
@@ -190,10 +195,15 @@ public static class DbSeeder
             db.Tables.Add(table);
         }
 
+        // Flush the tenant/subscription/restaurant/locations/departments/tables graph before the next
+        // Identity call: UserManager.CreateAsync/UpdateAsync auto-saves the DbContext internally, which
+        // would otherwise also try to flush this whole still-pending graph as a side effect.
+        await db.SaveChangesAsync(ct);
+
         // ---- Staff ----
         var managerUser = await CreateUserAsync(userManager, "manager@bellapizza.demo", "Manager!2026", "Maria", "Manager");
         var waiterUser = await CreateUserAsync(userManager, "waiter@bellapizza.demo", "Waiter!2026", "Will", "Waiter");
-        var chefUser = await CreateUserAsync(userManager, "chef@bellapizza.demo", "Chef!2026", "Carlos", "Chef");
+        var chefUser = await CreateUserAsync(userManager, "chef@bellapizza.demo", "ChefUser!2026", "Carlos", "Chef");
 
         foreach (var (user, roleName) in new[] { (managerUser, "Manager"), (waiterUser, "Waiter"), (chefUser, "Chef") })
         {

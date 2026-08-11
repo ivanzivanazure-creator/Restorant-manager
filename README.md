@@ -147,11 +147,13 @@ The seeder (`RestaurantSaaS.Infrastructure/Persistence/Seed/DbSeeder.cs`) create
 | Restaurant Owner | `owner@bellapizza.demo` | `Owner!2026` | "Bella Pizza" tenant (2 locations) |
 | Manager | `manager@bellapizza.demo` | `Manager!2026` | Bella Pizza — Downtown location |
 | Waiter | `waiter@bellapizza.demo` | `Waiter!2026` | Bella Pizza — Downtown location |
-| Chef | `chef@bellapizza.demo` | `Chef!2026` | Bella Pizza — Downtown kitchen |
+| Chef | `chef@bellapizza.demo` | `ChefUser!2026` | Bella Pizza — Downtown kitchen |
 
-Demo tenant ships with: 2 locations, a full table layout with QR codes, a pizzeria menu
-(categories/products/variants/modifiers), starter inventory (ingredients + a warehouse + stock),
-and an active "Professional / Monthly" subscription.
+Demo tenant ships with: 2 locations, a full table layout with QR codes, a pizzeria/pasta/salads/desserts
+menu (categories/products/variants/modifiers), inventory (10 ingredients, one deliberately low-stock),
+CRM data (customers/loyalty accounts/a coupon/a gift card), an active "Professional / Monthly"
+subscription, 10 paid POS orders spanning today plus 5 more still open in different kitchen states, and
+6 days of sales history.
 
 **Never reuse these credentials or seeded secrets in a real deployment.**
 
