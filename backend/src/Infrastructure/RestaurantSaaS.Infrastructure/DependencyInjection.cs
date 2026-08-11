@@ -137,21 +137,21 @@ public static class DependencyInjection
 
     private static void AddCaching(IServiceCollection services, IConfiguration configuration)
     {
-        var redisConnectionString = configuration.GetConnectionString("Redis") ?? "localhost:6379";
-
-        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnectionString));
-        services.AddStackExchangeRedisCache(options => options.Configuration = redisConnectionString);
+        // Connection strings are read lazily inside each factory/options callback (not captured into a
+        // local up front) so that config sources added after this method runs — e.g. a test host's
+        // WebApplicationFactory.ConfigureAppConfiguration override — are still picked up: those callbacks
+        // only actually execute once the service is first resolved, by which point the host is fully built.
+        services.AddSingleton<IConnectionMultiplexer>(
+            _ => ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis") ?? "localhost:6379"));
+        services.AddStackExchangeRedisCache(options => options.Configuration = configuration.GetConnectionString("Redis") ?? "localhost:6379");
         services.AddScoped<ICacheService, RedisCacheService>();
     }
 
     private static void AddRealtime(IServiceCollection services, IConfiguration configuration)
     {
-        var redisConnectionString = configuration.GetConnectionString("Redis") ?? "localhost:6379";
-
-        services.AddSignalR().AddStackExchangeRedis(redisConnectionString, options =>
-        {
-            options.Configuration.ChannelPrefix = RedisChannel.Literal("restaurant-saas-signalr");
-        });
+        services.AddSignalR().AddStackExchangeRedis(
+            configuration.GetConnectionString("Redis") ?? "localhost:6379",
+            options => options.Configuration.ChannelPrefix = RedisChannel.Literal("restaurant-saas-signalr"));
 
         services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
     }

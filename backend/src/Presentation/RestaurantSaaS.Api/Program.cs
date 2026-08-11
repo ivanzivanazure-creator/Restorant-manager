@@ -9,11 +9,13 @@ using Microsoft.OpenApi.Models;
 using RestaurantSaaS.Api.Middleware;
 using RestaurantSaaS.Application;
 using RestaurantSaaS.Infrastructure;
+using RestaurantSaaS.Infrastructure.HealthChecks;
 using RestaurantSaaS.Infrastructure.Identity;
 using RestaurantSaaS.Infrastructure.Logging;
 using RestaurantSaaS.Infrastructure.Persistence;
 using RestaurantSaaS.Infrastructure.Persistence.Seed;
 using RestaurantSaaS.Infrastructure.RealTime;
+using Scalar.AspNetCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -70,8 +72,8 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddHealthChecks()
-    .AddNpgSql(builder.Configuration.GetConnectionString("Postgres")!, name: "postgres")
-    .AddRedis(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379", name: "redis");
+    .AddCheck<PostgresHealthCheck>("postgres")
+    .AddCheck<RedisHealthCheck>("redis");
 
 var app = builder.Build();
 
@@ -103,6 +105,10 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // Modern OpenAPI explorer (scalar.com) reading the same Swashbuckle-generated document as above —
+    // reachable at /scalar/v1.
+    app.MapScalarApiReference(options => options.WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json"));
 }
 
 app.UseHttpsRedirection();
